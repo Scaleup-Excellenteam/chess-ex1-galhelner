@@ -4,10 +4,9 @@
 class ChessPiece {
 public:
     ChessPiece(int color, int column, int row);
-    virtual ~ChessPiece() = default;
     virtual bool isValidMove(int destinationCol, int destinationRow) = 0;
 
-private:
+protected:
     int color;
     int column;
     int row;

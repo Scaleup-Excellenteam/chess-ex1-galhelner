@@ -19,7 +19,16 @@ endif ()
 
 add_executable (Chess ""
         include/ChessPiece.h
-        src/ChessPiece.cpp)
+        src/ChessPiece.cpp
+        include/Rock.h
+        src/Rock.cpp
+        include/King.h
+        src/King.cpp
+        include/Queen.h
+        src/Queen.cpp
+        include/Bishop.h
+        src/Bishop.cpp
+)
 
 
 add_subdirectory (include)
