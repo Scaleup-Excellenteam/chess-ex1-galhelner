@@ -28,6 +28,8 @@ add_executable (Chess ""
         src/Queen.cpp
         include/Bishop.h
         src/Bishop.cpp
+        include/ChessBoard.h
+        src/ChessBoard.cpp
 )
 
 
