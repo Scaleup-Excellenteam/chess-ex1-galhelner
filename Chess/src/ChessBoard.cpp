@@ -9,6 +9,23 @@ ChessBoard* ChessBoard::instance = nullptr;
 
 ChessBoard::ChessBoard(): board(vector<vector<ChessPiece*>>(8, vector<ChessPiece*>(8, nullptr))) {}
 
+ChessBoard::~ChessBoard() {
+    for (auto& pieces : board) {
+        for (auto piece : pieces) {
+            delete piece;
+        }
+        pieces.clear();
+    }
+    board.clear();
+}
+
+void ChessBoard::destroyInstance() {
+    if (instance != nullptr) {
+        delete instance;
+        instance = nullptr;
+    }
+}
+
 vector<vector<ChessPiece *>> &ChessBoard::getBoard() {
     return board;
 }
@@ -44,6 +61,45 @@ void ChessBoard::addPiece(char symbol, int column, int row) {
     }
 }
 
-bool ChessBoard::isValidMove(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
-    // TODO: check if the move from source to destination is valid and return the corresponding code (based on task pdf file)
+int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+    ChessPiece* sourcePiece = board[sourceRow][sourceCol];
+    ChessPiece* destinationPiece = board[destinationRow][destinationCol];
+
+    if (sourcePiece == nullptr) {
+        return 11;
+    }
+
+    if (sourcePiece->getColor()  != playerColor) {
+        return 12;
+    }
+
+    if (destinationPiece->getColor() == playerColor) {
+        return 13;
+    }
+
+    if (!sourcePiece->isValidMove(destinationCol, destinationRow) || isAnyPieceBlocking()) {
+        return 21;
+    }
+
+    if (isSelfChess()) {
+        return 31;
+    }
+
+    if (isChess()) {
+        return 41;
+    }
+
+    return 42;
+}
+
+bool ChessBoard::isChess() {
+    // TODO: check if there is a chess (in the destination row or col there is a sequence of nulls and then an opponent king).
+}
+
+bool ChessBoard::isSelfChess() {
+    // TODO: check if there is a self chess (in the source row or col there is opponent piece and current player king).
+}
+
+bool ChessBoard::isAnyPieceBlocking() {
+    // TODO: check whats the meaning of piece that blocking the way (consider implement it for each Piece derived class).
 }

@@ -12,12 +12,17 @@ private:
     vector<vector<ChessPiece*>> board;
     void addPiece(char symbol, int column, int row);
     vector<vector<ChessPiece*>>& getBoard();
+    bool isChess();
+    bool isSelfChess();
+    bool isAnyPieceBlocking();
 
 public:
+    ~ChessBoard();
     ChessBoard(const ChessBoard&) = delete;
     ChessBoard& operator= (const ChessBoard&) = delete;
     static ChessBoard* getInstance(const string& boardString);
-    bool isValidMove(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
+    static void destroyInstance();
+    int getMoveCodeResponse(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
 };
 
 #endif //CHESS_CHESSBOARD_H
