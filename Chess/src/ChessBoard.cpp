@@ -43,3 +43,7 @@ void ChessBoard::addPiece(char symbol, int column, int row) {
         default: board[row][column] = nullptr;
     }
 }
+
+bool ChessBoard::isValidMove(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+    // TODO: check if the move from source to destination is valid and return the corresponding code (based on task pdf file)
+}

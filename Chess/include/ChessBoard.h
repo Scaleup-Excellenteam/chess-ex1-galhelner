@@ -17,6 +17,7 @@ public:
     ChessBoard(const ChessBoard&) = delete;
     ChessBoard& operator= (const ChessBoard&) = delete;
     static ChessBoard* getInstance(const string& boardString);
+    bool isValidMove(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
 };
 
 #endif //CHESS_CHESSBOARD_H
