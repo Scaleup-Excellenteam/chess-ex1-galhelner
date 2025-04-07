@@ -30,6 +30,7 @@ add_executable (Chess ""
         src/Bishop.cpp
         include/ChessBoard.h
         src/ChessBoard.cpp
+        include/Colors.h
 )
 
 

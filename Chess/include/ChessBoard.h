@@ -10,6 +10,8 @@ private:
     static ChessBoard* instance;
     ChessBoard();
     vector<vector<ChessPiece*>> board;
+    void addPiece(char symbol, int column, int row);
+    vector<vector<ChessPiece*>>& getBoard();
 
 public:
     ChessBoard(const ChessBoard&) = delete;

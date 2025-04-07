@@ -3,6 +3,7 @@
 #include "ChessPiece.h"
 
 class Queen : public ChessPiece {
+public:
     Queen(int color, int column, int row) : ChessPiece(color, column, row) {}
     bool isValidMove(int destinationCol, int destinationRow) override;
 };

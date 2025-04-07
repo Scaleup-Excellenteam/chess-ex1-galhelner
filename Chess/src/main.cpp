@@ -1,5 +1,6 @@
 // Chess 
 #include "Chess.h"
+#include "ChessBoard.h"
 
 int main()
 {
@@ -26,8 +27,9 @@ int main()
 
 		/**/ 
 		{ // put your code here instead that code
-			cout << "code response >> ";
-			cin >> codeResponse;
+//			cout << "code response >> ";
+//			cin >> codeResponse;
+            ChessBoard* chessBoard = ChessBoard::getInstance(board);
 		}
 		/**/
 
