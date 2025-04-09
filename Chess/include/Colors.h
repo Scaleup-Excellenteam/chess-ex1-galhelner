@@ -1,10 +1,10 @@
 #ifndef CHESS_COLORS_H
 #define CHESS_COLORS_H
 
-struct Colors {
+typedef struct Colors {
 public:
-    int Black = 0;
-    int White = 1;
-};
+    static const int Black = 0;
+    static const int White = 1;
+} Colors;
 
 #endif //CHESS_COLORS_H

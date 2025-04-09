@@ -47,16 +47,15 @@ ChessBoard *ChessBoard::getInstance(const string& boardString) {
 }
 
 void ChessBoard::addPiece(char symbol, int column, int row) {
-    Colors colors;
     switch (symbol) {
-        case 'R': board[row][column] = new Rock(colors.White, column, row); break;
-        case 'r': board[row][column] = new Rock(colors.Black, column, row); break;
-        case 'B': board[row][column] = new Bishop(colors.White, column, row); break;
-        case 'b': board[row][column] = new Bishop(colors.Black, column, row); break;
-        case 'K': board[row][column] = new King(colors.White, column, row); break;
-        case 'k': board[row][column] = new King(colors.Black, column, row); break;
-        case 'Q': board[row][column] = new Queen(colors.White, column, row); break;
-        case 'q': board[row][column] = new Queen(colors.Black, column, row); break;
+        case 'R': board[row][column] = new Rock(Colors::White, column, row); break;
+        case 'r': board[row][column] = new Rock(Colors::Black, column, row); break;
+        case 'B': board[row][column] = new Bishop(Colors::White, column, row); break;
+        case 'b': board[row][column] = new Bishop(Colors::Black, column, row); break;
+        case 'K': board[row][column] = new King(Colors::White, column, row); break;
+        case 'k': board[row][column] = new King(Colors::Black, column, row); break;
+        case 'Q': board[row][column] = new Queen(Colors::White, column, row); break;
+        case 'q': board[row][column] = new Queen(Colors::Black, column, row); break;
         default: board[row][column] = nullptr;
     }
 }
@@ -73,11 +72,11 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
         return 12;
     }
 
-    if (destinationPiece->getColor() == playerColor) {
+    if (destinationPiece != nullptr && destinationPiece->getColor() == playerColor) {
         return 13;
     }
 
-    if (!sourcePiece->isValidMove(destinationCol, destinationRow) || isAnyPieceBlocking()) {
+    if (!sourcePiece->isValidMove(destinationCol, destinationRow) || isAnyPieceBlocking(sourceRow, sourceCol, destinationRow, destinationCol)) {
         return 21;
     }
 
@@ -96,10 +95,79 @@ bool ChessBoard::isChess() {
     // TODO: check if there is a chess (in the destination row or col there is a sequence of nulls and then an opponent king).
 }
 
-bool ChessBoard::isSelfChess() {
+bool ChessBoard::isSelfChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
     // TODO: check if there is a self chess (in the source row or col there is opponent piece and current player king).
 }
 
-bool ChessBoard::isAnyPieceBlocking() {
-    // TODO: check whats the meaning of piece that blocking the way (consider implement it for each Piece derived class).
+bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+    auto pathPieces = getPathPieces(sourceRow, sourceCol, destinationRow, destinationCol);
+    // check if the movement path is clear or blocked by some piece
+    for (auto piece : pathPieces) {
+        if (piece != nullptr) {
+            return true;
+        }
+    }
+    return false;
+}
+
+vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+    vector<ChessPiece*> pathPieces;
+    if (sourceRow == destinationRow) {
+        // moving horizontally
+        if (sourceCol < destinationCol) {
+            // moving right
+            pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + sourceCol + 1, board[sourceRow].end());
+        } else {
+            // moving left
+            pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + destinationCol, board[sourceRow].begin() + sourceCol - 1);
+        }
+    } else if (sourceCol == destinationCol){
+        // moving vertically
+        if (sourceRow < destinationRow) {
+            // moving down
+            for (int row = sourceRow + 1; row < board.size(); row++) {
+                pathPieces.push_back(board[row][sourceCol]);
+            }
+        } else {
+            // moving up
+            for (int row = destinationRow; row < sourceRow; row++) {
+                pathPieces.push_back(board[row][sourceCol]);
+            }
+        }
+    } else {
+        // moving diagonally
+        if (sourceRow < destinationRow) {
+            // moving diagonally down
+            if (sourceCol < destinationCol) {
+                // moving diagonally down-right
+                int distance = destinationCol - sourceCol;
+                for (int i = 1; i <= distance; i++) {
+                    pathPieces.push_back(board[sourceRow + i][sourceCol + i]);
+                }
+            } else {
+                // moving diagonally down-left
+                int distance = sourceCol - destinationCol;
+                for (int i = 1; i <= distance; i++) {
+                    pathPieces.push_back(board[sourceRow - i][sourceCol + i]);
+                }
+            }
+        } else {
+            // moving diagonally up
+            if (sourceCol < destinationCol) {
+                // moving diagonally up-right
+                int distance = destinationCol - sourceCol;
+                for (int i = 1; i <= distance; i++) {
+                    pathPieces.push_back(board[sourceRow - i][sourceCol + i]);
+                }
+            } else {
+                // moving diagonally up-left
+                int distance = sourceCol - destinationCol;
+                for (int i = 1; i <= distance; i++) {
+                    pathPieces.push_back(board[sourceRow - i][sourceCol - i]);
+                }
+            }
+        }
+    }
+
+    return pathPieces;
 }

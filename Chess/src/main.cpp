@@ -1,11 +1,12 @@
 // Chess 
 #include "Chess.h"
 #include "ChessBoard.h"
+#include "Colors.h"
 
 int main()
 {
-	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
-//	string board = "##########K###############################R#############r#r#####";
+//	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr";
+	string board = "##########K###############################R#############r#r#####";
 	Chess a(board);
 	int codeResponse = 0;
 	string res = a.getInput();
@@ -29,13 +30,12 @@ int main()
 		*/
 
 		/**/ 
-		{ // put your code here instead that code
+		{
             int sourceRow = 7 - ('h' - res[0]);
             int destinationRow = 7 - ('h' - res[2]);
             int sourceCol = (res[1] - '0') - 1;
             int destinationCol = (res[3] - '0') - 1;
-            int playerColor = currentPlayer? 1 : 0;
-
+            int playerColor = currentPlayer? Colors::White : Colors::Black;
             codeResponse = chessBoard->getMoveCodeResponse(playerColor, sourceRow, sourceCol, destinationRow, destinationCol);
             if (codeResponse == 41 || codeResponse == 42) {
                 currentPlayer = !currentPlayer;

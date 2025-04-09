@@ -13,8 +13,9 @@ private:
     void addPiece(char symbol, int column, int row);
     vector<vector<ChessPiece*>>& getBoard();
     bool isChess();
-    bool isSelfChess();
-    bool isAnyPieceBlocking();
+    bool isSelfChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
+    bool isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
+    vector<ChessPiece*> getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
 
 public:
     ~ChessBoard();
