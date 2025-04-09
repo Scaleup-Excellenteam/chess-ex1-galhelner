@@ -80,18 +80,18 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
         return 21;
     }
 
-    if (isSelfChess()) {
+    if (isSelfChess(playerColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
         return 31;
     }
 
-    if (isChess()) {
+    if (isChess(playerColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
         return 41;
     }
 
     return 42;
 }
 
-bool ChessBoard::isChess() {
+bool ChessBoard::isChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
     // TODO: check if there is a chess (in the destination row or col there is a sequence of nulls and then an opponent king).
 }
 
