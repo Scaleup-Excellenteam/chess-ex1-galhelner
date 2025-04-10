@@ -20,8 +20,8 @@ endif ()
 add_executable (Chess ""
         include/ChessPiece.h
         src/ChessPiece.cpp
-        include/Rock.h
-        src/Rock.cpp
+        include/Rook.h
+        src/Rook.cpp
         include/King.h
         src/King.cpp
         include/Queen.h

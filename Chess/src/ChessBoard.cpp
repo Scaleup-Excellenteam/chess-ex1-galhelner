@@ -1,6 +1,6 @@
 #include "ChessBoard.h"
 #include "Colors.h"
-#include "Rock.h"
+#include "Rook.h"
 #include "Bishop.h"
 #include "King.h"
 #include "Queen.h"
@@ -48,8 +48,8 @@ ChessBoard *ChessBoard::getInstance(const string& boardString) {
 
 void ChessBoard::addPiece(char symbol, int column, int row) {
     switch (symbol) {
-        case 'R': board[row][column] = new Rock(Colors::White, column, row); break;
-        case 'r': board[row][column] = new Rock(Colors::Black, column, row); break;
+        case 'R': board[row][column] = new Rook(Colors::White, column, row); break;
+        case 'r': board[row][column] = new Rook(Colors::Black, column, row); break;
         case 'B': board[row][column] = new Bishop(Colors::White, column, row); break;
         case 'b': board[row][column] = new Bishop(Colors::Black, column, row); break;
         case 'K': board[row][column] = new King(Colors::White, column, row); break;
