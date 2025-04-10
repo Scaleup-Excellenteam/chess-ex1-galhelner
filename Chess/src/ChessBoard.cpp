@@ -121,7 +121,7 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
             pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + sourceCol + 1, board[sourceRow].begin() + destinationCol);
         } else {
             // moving left
-            pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + destinationCol - 1, board[sourceRow].begin() + sourceCol);
+            pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + destinationCol + 1, board[sourceRow].begin() + sourceCol);
         }
     } else if (sourceCol == destinationCol){
         // moving vertically
