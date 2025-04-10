@@ -64,6 +64,8 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
     ChessPiece* sourcePiece = board[sourceRow][sourceCol];
     ChessPiece* destinationPiece = board[destinationRow][destinationCol];
 
+    int opponentColor = playerColor == 0 ? 1 : 0;
+
     if (sourcePiece == nullptr) {
         return 11;
     }
@@ -80,23 +82,15 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
         return 21;
     }
 
-    if (isSelfChess(playerColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
+    if (isCheck(playerColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
         return 31;
     }
 
-    if (isChess(playerColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
+    if (isCheck(opponentColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
         return 41;
     }
 
     return 42;
-}
-
-bool ChessBoard::isChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
-    // TODO: check if there is a chess (in the destination row or col there is a sequence of nulls and then an opponent king).
-}
-
-bool ChessBoard::isSelfChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
-    // TODO: check if there is a self chess (in the source row or col there is opponent piece and current player king).
 }
 
 bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
@@ -170,4 +164,63 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
     }
 
     return pathPieces;
+}
+
+pair<int, int> ChessBoard::findKing(int playerColor) {
+    int rows = board.size();
+    int columns = board[0].size();
+    pair<int,int> kingLocation = {-1, -1};
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            auto king = dynamic_cast<King*>(board[row][col]);
+            if (king && king->getColor() == playerColor) {
+                kingLocation.first = row;
+                kingLocation.second = col;
+            }
+        }
+    }
+    return kingLocation;
+}
+
+bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol) {
+    int rows = board.size();
+    int columns = board[0].size();
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            ChessPiece* currentPiece = board[row][col];
+            if (currentPiece != nullptr && currentPiece->getColor() != playerColor) {
+                bool isValidMove = currentPiece->isValidMove(testedCol, testedRow);
+                bool isPathClear = !isAnyPieceBlocking(row, col, testedRow, testedCol);
+                if (isValidMove && isPathClear) {
+                    // an opponent piece is able to move on a clear path straight to the tested location
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+    // store the board state before move simulation
+    ChessPiece* pieceToMove = board[sourceRow][sourceCol];
+    ChessPiece* pieceToOverride = board[destinationRow][destinationCol];
+
+    // simulating the move
+    board[sourceRow][sourceCol] = nullptr;
+    board[destinationRow][destinationCol] = pieceToMove;
+
+    // find the king location
+    pair<int,int> kingLocation = findKing(playerColor);
+
+    // check if after the move simulation the king is attackable
+    bool isKingAttackable = isAttackable(playerColor, kingLocation.first, kingLocation.second);
+
+    // restore the board state as it was before move simulation
+    board[sourceRow][sourceCol] = pieceToMove;
+    board[destinationRow][destinationCol] = pieceToOverride;
+
+    return isKingAttackable;
 }

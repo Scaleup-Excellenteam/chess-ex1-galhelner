@@ -12,10 +12,11 @@ private:
     vector<vector<ChessPiece*>> board;
     void addPiece(char symbol, int column, int row);
     vector<vector<ChessPiece*>>& getBoard();
-    bool isChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
-    bool isSelfChess(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
     bool isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
     vector<ChessPiece*> getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
+    pair<int,int> findKing(int playerColor);
+    bool isAttackable(int playerColor, int testedRow, int testedCol);
+    bool isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
 
 public:
     ~ChessBoard();
