@@ -1,6 +1,10 @@
 #ifndef CHESS_CHESSPIECE_H
 #define CHESS_CHESSPIECE_H
 
+/*
+ * Abstract class of chess piece object
+ */
+
 class ChessPiece {
 public:
     ChessPiece(int color, int column, int row);

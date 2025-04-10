@@ -21,16 +21,14 @@ ChessBoard::~ChessBoard() {
 
 void ChessBoard::destroyInstance() {
     if (instance != nullptr) {
+        // call the destructor to delete all the pieces in the board.
         delete instance;
         instance = nullptr;
     }
 }
 
-vector<vector<ChessPiece *>> &ChessBoard::getBoard() {
-    return board;
-}
-
 ChessBoard *ChessBoard::getInstance(const string& boardString) {
+    // provides a singleton design pattern
     if (instance == nullptr) {
         instance = new ChessBoard();
         if (!boardString.empty() && boardString.length() == 64) {
@@ -46,6 +44,12 @@ ChessBoard *ChessBoard::getInstance(const string& boardString) {
     return instance;
 }
 
+/**
+ * Adds a single chess piece at specific location to the board.
+ * @param symbol(char) - symbol of the piece on GUI.
+ * @param column(int) - piece's location column.
+ * @param row(int) - piece's location row.
+ */
 void ChessBoard::addPiece(char symbol, int column, int row) {
     switch (symbol) {
         case 'R': board[row][column] = new Rook(Colors::White, column, row); break;
@@ -101,6 +105,14 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
     return 42;
 }
 
+/**
+ * Check if any chess piece is on the path from source to destination.
+ * @param sourceRow(int) - row index to move from.
+ * @param sourceCol(int) - column index to move from.
+ * @param destinationRow(int) - row index to move to.
+ * @param destinationCol(int) - column index to move to.
+ * @return bool - true if any chess piece is blocking the path, otherwise false.
+ */
 bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
     auto pathPieces = getPathPieces(sourceRow, sourceCol, destinationRow, destinationCol);
     // check if the movement path is clear or blocked by some piece
@@ -112,6 +124,14 @@ bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinatio
     return false;
 }
 
+/**
+ * Find all the chess pieces on the path from source to destination.
+ * @param sourceRow(int) - row index to move from.
+ * @param sourceCol(int) - column index to move from.
+ * @param destinationRow(int) - row index to move to.
+ * @param destinationCol(int) - column index to move to.
+ * @return vector<ChessPiece*> - a vector of all the chess pieces on the path.
+ */
 vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
     vector<ChessPiece*> pathPieces;
     if (sourceRow == destinationRow) {
@@ -174,6 +194,11 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
     return pathPieces;
 }
 
+/**
+ * Find the location of the king chess piece by color.
+ * @param playerColor(int) - color of the king to find.
+ * @return pair<int,int> - A pair of the king location where first=row and second=column
+ */
 pair<int, int> ChessBoard::findKing(int playerColor) {
     int rows = board.size();
     int columns = board[0].size();
@@ -191,6 +216,13 @@ pair<int, int> ChessBoard::findKing(int playerColor) {
     return kingLocation;
 }
 
+/**
+ * Check if a tested location on the board is attackable by any opponent piece.
+ * @param playerColor(int) - color of the current player.
+ * @param testedRow(int) - row index of the tested location.
+ * @param testedCol(int) - column index of the tested location.
+ * @return bool - true if the location is attackable by any opponent piece, otherwise false.
+ */
 bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol) {
     int rows = board.size();
     int columns = board[0].size();
@@ -213,6 +245,15 @@ bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol) {
     return false;
 }
 
+/**
+ * Check if the move from source to destination will cause a check.
+ * @param playerColor(int) - color of the current player.
+ * @param sourceRow(int) - row index to move from.
+ * @param sourceCol(int) - column index to move from.
+ * @param destinationRow(int) - row index to move to.
+ * @param destinationCol(int) - column index to move to.
+ * @return bool - true if the move caused a check, otherwise false.
+ */
 bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
     // store the board state before move simulation
     ChessPiece* pieceToMove = board[sourceRow][sourceCol];

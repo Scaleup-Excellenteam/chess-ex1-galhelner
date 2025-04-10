@@ -31,13 +31,19 @@ int main()
 
 		/**/ 
 		{
+            // extract the source and destination locations from the user's input 'res'
             int sourceRow = 7 - ('h' - res[0]);
             int destinationRow = 7 - ('h' - res[2]);
             int sourceCol = (res[1] - '0') - 1;
             int destinationCol = (res[3] - '0') - 1;
+
             int playerColor = currentPlayer? Colors::White : Colors::Black;
+            pair<const int, const int> validMoveCodes = {41, 42};
+
+            // get the corresponding codeResponse created by ChessBoard object
             codeResponse = chessBoard->getMoveCodeResponse(playerColor, sourceRow, sourceCol, destinationRow, destinationCol);
-            if (codeResponse == 41 || codeResponse == 42) {
+            if (codeResponse == validMoveCodes.first || codeResponse == validMoveCodes.second) {
+                // flipping turns
                 currentPlayer = !currentPlayer;
             }
 		}
