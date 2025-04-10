@@ -1,13 +1,18 @@
 // Chess 
 #include "Chess.h"
+#include "ChessBoard.h"
+#include "Colors.h"
 
 int main()
 {
-	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
+	string board = "R#BQKB#R################################################r#bqkb#r";
 //	string board = "##########K###############################R#############r#r#####";
 	Chess a(board);
 	int codeResponse = 0;
 	string res = a.getInput();
+    ChessBoard* chessBoard = ChessBoard::getInstance(board);
+    // true means Player1 is playing, false means Player2 is playing
+    bool currentPlayer = true;
 	while (res != "exit")
 	{
 		/* 
@@ -25,9 +30,22 @@ int main()
 		*/
 
 		/**/ 
-		{ // put your code here instead that code
-			cout << "code response >> ";
-			cin >> codeResponse;
+		{
+            // extract the source and destination locations from the user's input 'res'
+            int sourceRow = 7 - ('h' - res[0]);
+            int destinationRow = 7 - ('h' - res[2]);
+            int sourceCol = (res[1] - '0') - 1;
+            int destinationCol = (res[3] - '0') - 1;
+
+            int playerColor = currentPlayer? Colors::White : Colors::Black;
+            pair<const int, const int> validMoveCodes = {41, 42};
+
+            // get the corresponding codeResponse created by ChessBoard object
+            codeResponse = chessBoard->getMoveCodeResponse(playerColor, sourceRow, sourceCol, destinationRow, destinationCol);
+            if (codeResponse == validMoveCodes.first || codeResponse == validMoveCodes.second) {
+                // flipping turns
+                currentPlayer = !currentPlayer;
+            }
 		}
 		/**/
 
@@ -35,6 +53,7 @@ int main()
 		res = a.getInput(); 
 	}
 
-	cout << endl << "Exiting " << endl; 
+	cout << endl << "Exiting " << endl;
+    ChessBoard::destroyInstance();
 	return 0;
 }
