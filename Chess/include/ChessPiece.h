@@ -7,6 +7,8 @@ public:
     virtual bool isValidMove(int destinationCol, int destinationRow) = 0;
     virtual ~ChessPiece() = default;
     virtual int getColor();
+    void setColumn(int newColumn) { this->column = newColumn; }
+    void setRow(int newRow) { this->row = newRow; }
 
 protected:
     int color;
