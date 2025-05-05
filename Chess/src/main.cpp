@@ -5,8 +5,8 @@
 
 int main()
 {
-	string board = "R#BQKB#R################################################r#bqkb#r";
-//	string board = "##########K###############################R#############r#r#####";
+//	string board = "R#BQKB#R################################################r#bqkb#r";
+	string board = "rnbqkbnrpppppppp################################PPPPPPPPRNBQKBNR";
 	Chess a(board);
 	int codeResponse = 0;
 	string res = a.getInput();

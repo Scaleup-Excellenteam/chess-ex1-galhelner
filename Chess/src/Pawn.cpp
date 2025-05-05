@@ -7,7 +7,7 @@
  */
 
 bool Pawn::isValidMove(int destinationCol, int destinationRow) {
-    int startRow = (this->color == Colors::White) ? 1 : 6;
+    int startRow = (this->color == Colors::White) ? 6 : 1;
     int deltaColumn = abs(this->column - destinationCol);
     int deltaRow = abs(this->row - destinationRow);
 

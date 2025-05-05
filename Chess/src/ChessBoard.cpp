@@ -176,7 +176,7 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
                 // moving diagonally down-left
                 int distance = sourceCol - destinationCol;
                 for (int i = 1; i < distance; i++) {
-                    pathPieces.push_back(board[sourceRow - i][sourceCol + i]);
+                    pathPieces.push_back(board[sourceRow + i][sourceCol - i]);
                 }
             }
         } else {
