@@ -4,6 +4,8 @@
 #include "Bishop.h"
 #include "King.h"
 #include "Queen.h"
+#include "Pawn.h"
+#include "Knight.h"
 
 ChessBoard* ChessBoard::instance = nullptr;
 
@@ -60,6 +62,10 @@ void ChessBoard::addPiece(char symbol, int column, int row) {
         case 'k': board[row][column] = new King(Colors::Black, column, row); break;
         case 'Q': board[row][column] = new Queen(Colors::White, column, row); break;
         case 'q': board[row][column] = new Queen(Colors::Black, column, row); break;
+        case 'P': board[row][column] = new Pawn(Colors::White, column, row, board); break;
+        case 'p': board[row][column] = new Pawn(Colors::Black, column, row, board); break;
+        case 'N': board[row][column] = new Knight(Colors::White, column, row); break;
+        case 'n': board[row][column] = new Knight(Colors::Black, column, row); break;
         default: board[row][column] = nullptr;
     }
 }
