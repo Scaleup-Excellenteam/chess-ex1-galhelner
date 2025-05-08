@@ -6,7 +6,7 @@
 #include "Queen.h"
 #include "Pawn.h"
 #include "Knight.h"
-#include "EmptyQueueException.h"
+#include "InvalidPieceException.h"
 
 const int EMPTY_SOURCE_CODE = 11;
 const int ENEMY_AT_SOURCE_CODE = 12;
@@ -57,7 +57,11 @@ ChessBoard *ChessBoard::getInstance(const string& boardString) {
                 for (int col = 0; col < 8; col++) {
                     int symbol_index = (row * 8) + col;
                     char symbol = boardString[symbol_index];
-                    instance->addPiece(symbol, col, row);
+                    try {
+                        instance->addPiece(symbol, col, row);
+                    } catch (InvalidPieceException& e) {
+                        throw e;
+                    }
                 }
             }
         }
@@ -85,7 +89,8 @@ void ChessBoard::addPiece(char symbol, int column, int row) {
         case 'p': board[row][column] = new Pawn(Colors::Black, column, row, board); break;
         case 'N': board[row][column] = new Knight(Colors::White, column, row); break;
         case 'n': board[row][column] = new Knight(Colors::Black, column, row); break;
-        default: board[row][column] = nullptr;
+        case '#': board[row][column] = nullptr; break;
+        default: throw InvalidPieceException("Invalid piece: " + string(1, symbol));
     }
 }
 

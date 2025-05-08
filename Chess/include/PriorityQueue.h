@@ -66,13 +66,17 @@ template<typename T>
 std::ostream& operator<<(std::ostream& os, PriorityQueue<T> pq) {
     os << "Recommended moves:\n";
     for (int i = 0; i < 3; i++) {
-        T move = pq.pull();
-        char srcRow = 'a' + move.source.first;
-        int srcCol = move.source.second + 1;
-        char destRow = 'a' + move.destination.first;
-        int destCol = move.destination.second + 1;
+        try {
+            T move = pq.pull();
+            char srcRow = 'a' + move.source.first;
+            int srcCol = move.source.second + 1;
+            char destRow = 'a' + move.destination.first;
+            int destCol = move.destination.second + 1;
 
-        os << i + 1 << ". " << srcRow << srcCol << destRow << destCol << "\n";
+            os << i + 1 << ". " << srcRow << srcCol << destRow << destCol << "\n";
+        } catch (EmptyQueueException& e) {
+            cerr << e.what() << endl;
+        }
     }
     return os;
 }

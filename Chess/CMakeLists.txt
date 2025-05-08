@@ -38,6 +38,7 @@ add_executable (Chess ""
         include/PriorityQueue.h
         include/EmptyQueueException.h
         include/Move.h
+        include/InvalidPieceException.h
 )
 
 
