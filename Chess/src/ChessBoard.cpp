@@ -401,11 +401,8 @@ vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, i
         for (int col = 0; col < columns; col++) {
             ChessPiece* piece = board[row][col];
             if (piece && piece->getColor() == attackerColor) {
-                auto moves = getValidMoves(attackerColor, row, col);
-                for (auto& m : moves) {
-                    if (m.destination.first == targetRow && m.destination.second == targetCol) {
-                        attackers.push_back({row, col});
-                    }
+                if (piece->isValidMove(targetCol, targetRow) && !isAnyPieceBlocking(row, col, targetRow, targetCol)) {
+                    attackers.push_back({row, col});
                 }
             }
         }
