@@ -37,6 +37,7 @@ add_executable (Chess ""
         src/Knight.cpp
         include/PriorityQueue.h
         include/EmptyQueueException.h
+        include/Move.h
 )
 
 

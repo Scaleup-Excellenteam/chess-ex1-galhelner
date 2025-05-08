@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include "ChessPiece.h"
+#include "PriorityQueue.h"
+#include "Move.h"
 using namespace std;
 
 /*
@@ -21,6 +23,10 @@ private:
     pair<int,int> findKing(int playerColor);
     bool isAttackable(int playerColor, int testedRow, int testedCol);
     bool isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
+    vector<Move> getValidMoves(int playerColor, int sourceRow, int sourceCol);
+    int getPieceValue(ChessPiece* piece);
+    int evaluateBoard();
+    int minimax(int depth, bool isMaximizingPlayer);
 
 public:
     ~ChessBoard();
@@ -38,6 +44,15 @@ public:
      * @return int - corresponding codeResponse for the graphic machine.
      */
     int getMoveCodeResponse(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
+
+    /**
+     * Calculate the best 5 moves the piece at current location can do.
+     * @param playerColor(int) - color of the current player.
+     * @param currentRow(int) - row index to move from.
+     * @param currentCol(int) - column index to move from.
+     * @return PriorityQueue<int> - the best 5 moves in a priority queue data structure.
+     */
+    PriorityQueue<Move> getRecommendedMoves(int playerColor, int currentRow, int currentCol);
 };
 
 #endif //CHESS_CHESSBOARD_H

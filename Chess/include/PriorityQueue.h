@@ -10,7 +10,7 @@
  */
 template <class T>
 struct MyComparator {
-    T operator()(T a, T b) const {
+    bool operator()(T a, T b) const {
         return a > b;
     }
 };
