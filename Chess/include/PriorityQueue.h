@@ -3,6 +3,14 @@
 #include <iostream>
 #include <list>
 #include "EmptyQueueException.h"
+#include "Move.h"
+using namespace std;
+
+// Forward declaration
+template<typename T>
+class PriorityQueue;
+template<typename T>
+std::ostream& operator<<(std::ostream& os, PriorityQueue<T> pq);
 
 /**
  * Comparator struct for priority queue sorting.
@@ -50,6 +58,23 @@ public:
         elements.pop_front();
         return topElement;
     }
+
+    friend ostream& operator<< <>(std::ostream& os, PriorityQueue<T> pq);
 };
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, PriorityQueue<T> pq) {
+    os << "Recommended moves:\n";
+    for (int i = 0; i < 3; i++) {
+        T move = pq.pull();
+        char srcRow = 'a' + move.source.first;
+        int srcCol = move.source.second + 1;
+        char destRow = 'a' + move.destination.first;
+        int destCol = move.destination.second + 1;
+
+        os << i + 1 << ". " << srcRow << srcCol << destRow << destCol << "\n";
+    }
+    return os;
+}
 
 #endif //CHESS_PRIORITYQUEUE_H

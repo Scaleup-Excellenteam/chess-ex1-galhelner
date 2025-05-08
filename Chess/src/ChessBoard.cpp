@@ -305,6 +305,13 @@ bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int dest
     return isKingAttackable;
 }
 
+/**
+ * Find all the possible valid moves from some source location.
+ * @param playerColor(int) - the color of the current player.
+ * @param sourceRow(int) - row index of the source location.
+ * @param sourceCol(int) - column index of the source location.
+ * @return vector<Move> - vector contains all the possible valid moves.
+ */
 vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourceCol) {
     int rows = board.size();
     int columns = board[0].size();
@@ -318,9 +325,15 @@ vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourc
             if (responseCode == VALID_MOVE_CODE || responseCode == CHECK_VALID_MOVE_CODE) {
                 // undo move
                 board[sourceRow][sourceCol] = pieceToMove;
+                pieceToMove->setRow(sourceRow);
+                pieceToMove->setColumn(sourceCol);
                 board[row][col] = pieceToOverride;
-                auto move = new Move(sourceRow, sourceCol, row, col);
-                validMoves.push_back(*move);
+                if (pieceToOverride != nullptr) {
+                    pieceToOverride->setRow(row);
+                    pieceToOverride->setColumn(col);
+                }
+                Move move(sourceRow, sourceCol, row, col);
+                validMoves.push_back(move);
             }
         }
     }
@@ -328,6 +341,12 @@ vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourc
     return validMoves;
 }
 
+/**
+ * Evaluate moves score
+ * @param depth(int) - amount of turns to simulate.
+ * @param isMaximizingPlayer(bool) - true if the current player is white, otherwise false (maximize for white).
+ * @return int - evaluation score.
+ */
 int ChessBoard::minimax(int depth, bool isMaximizingPlayer) {
     if (depth == 0) {
         return evaluateBoard();
@@ -342,32 +361,104 @@ int ChessBoard::minimax(int depth, bool isMaximizingPlayer) {
             if (piece == nullptr || piece->getColor() != playerColor) continue;
 
             vector<Move> validMoves = getValidMoves(playerColor, srcRow, srcCol);
-            for (Move move : validMoves) {
+            for (Move& move : validMoves) {
                 ChessPiece* captured = board[move.destination.first][move.destination.second];
                 ChessPiece* movingPiece = board[srcRow][srcCol];
 
+                // moving the piece
                 board[move.destination.first][move.destination.second] = movingPiece;
                 board[srcRow][srcCol] = nullptr;
                 movingPiece->setRow(move.destination.first);
                 movingPiece->setColumn(move.destination.second);
 
-                int eval = minimax(depth - 1, !isMaximizingPlayer);
+                // calculate scores
+                int baseScore = minimax(depth - 1, !isMaximizingPlayer);
+                int testedScore = scoreMove(move, movingPiece);
+                int totalScore = baseScore + testedScore;
 
+                // undo the move
                 board[srcRow][srcCol] = movingPiece;
                 board[move.destination.first][move.destination.second] = captured;
                 movingPiece->setRow(srcRow);
                 movingPiece->setColumn(srcCol);
 
                 if (isMaximizingPlayer)
-                    bestEval = max(bestEval, eval);
+                    bestEval = max(bestEval, totalScore);
                 else
-                    bestEval = min(bestEval, eval);
+                    bestEval = min(bestEval, totalScore);
             }
         }
     }
     return bestEval;
 }
 
+vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, int attackerColor) {
+    vector<pair<int , int>> attackers;
+    int rows = board.size();
+    int columns = board[0].size();
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < columns; col++) {
+            ChessPiece* piece = board[row][col];
+            if (piece && piece->getColor() == attackerColor) {
+                auto moves = getValidMoves(attackerColor, row, col);
+                for (auto& m : moves) {
+                    if (m.destination.first == targetRow && m.destination.second == targetCol) {
+                        attackers.push_back({row, col});
+                    }
+                }
+            }
+        }
+    }
+    return attackers;
+}
+
+int ChessBoard::scoreMove(const Move &move, ChessPiece *movingPiece) {
+    int score = 0;
+    ChessPiece* captured = board[move.destination.first][move.destination.second];
+
+    // moving the piece
+    board[move.destination.first][move.destination.second] = movingPiece;
+    board[move.source.first][move.source.second] = nullptr;
+    movingPiece->setRow(move.destination.first);
+    movingPiece->setColumn(move.destination.second);
+
+    int opponentColor = (movingPiece->getColor() == Colors::White) ? Colors::Black : Colors::White;
+    int movedValue = getPieceValue(movingPiece);
+
+    auto threats = getAllThreats(move.destination.first, move.destination.second, opponentColor);
+    for (const auto& pos : threats) {
+        ChessPiece* attacker = board[pos.first][pos.second];
+        if (attacker && getPieceValue(attacker) < movedValue) {
+            score -= (movedValue - getPieceValue(attacker)) / 2;
+        }
+    }
+
+    auto attacks = getValidMoves(movingPiece->getColor(), move.destination.first, move.destination.second);
+    for (const auto& pos : attacks) {
+        ChessPiece* target = board[pos.destination.first][pos.destination.second];
+        if (target && getPieceValue(target) > movedValue && target->getColor() == opponentColor) {
+            score += (getPieceValue(target) - movedValue) / 2;
+        }
+    }
+
+    if (captured && captured->getColor() == opponentColor) {
+        score += getPieceValue(captured);
+    }
+
+    // undo the move
+    board[move.destination.first][move.destination.second] = captured;
+    board[move.source.first][move.source.second] = movingPiece;
+    movingPiece->setRow(move.source.first);
+    movingPiece->setColumn(move.source.second);
+
+    return score;
+}
+
+/**
+ * Evaluate the whole board score.
+ * @return int - evaluation score.
+ */
 int ChessBoard::evaluateBoard() {
     int score = 0;
     int rows = board.size();
@@ -383,6 +474,11 @@ int ChessBoard::evaluateBoard() {
     return score;
 }
 
+/**
+ * Gets the corresponding score value for a given piece.
+ * @param piece(ChessPiece*) - the piece to get the score value of.
+ * @return int - the score value of the given piece.
+ */
 int ChessBoard::getPieceValue(ChessPiece* piece) {
     if (piece == nullptr) {
         return 0;
@@ -402,53 +498,48 @@ int ChessBoard::getPieceValue(ChessPiece* piece) {
     if (king) return KING_SCORE;
 }
 
-PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int currentRow, int currentCol) {
+PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth) {
     PriorityQueue<Move> recommendedMoves;
-    PriorityQueue<Move> moves;
     int rows = board.size();
     int columns = board[0].size();
-    int depth = 3;
 
-    for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-            auto piece = board[row][col];
-            if (!piece || piece->getColor() != playerColor) continue;
+    for (int srcRow = 0; srcRow < rows; srcRow++) {
+        for (int srcCol = 0; srcCol < columns; srcCol++) {
+            auto piece = board[srcRow][srcCol];
+            if (piece == nullptr || piece->getColor() != playerColor) continue;
 
-            vector<Move> validMoves = getValidMoves(playerColor, currentRow, currentCol);
-            for (auto move : validMoves) {
+            vector<Move> validMoves = getValidMoves(playerColor, srcRow, srcCol);
+            for (Move& move : validMoves) {
+                // Simulate the move
                 ChessPiece* captured = board[move.destination.first][move.destination.second];
-                ChessPiece* movingPiece = board[row][col];
+                ChessPiece* movingPiece = board[srcRow][srcCol];
 
-                // Make move
                 board[move.destination.first][move.destination.second] = movingPiece;
-                board[row][col] = nullptr;
+                board[srcRow][srcCol] = nullptr;
                 movingPiece->setRow(move.destination.first);
                 movingPiece->setColumn(move.destination.second);
 
-                // Evaluate move
-                int score = minimax(depth - 1, playerColor == Colors::Black);
+                // Evaluate the board
+                int eval = minimax(depth, playerColor == Colors::White);
 
-                // Undo move
-                board[row][col] = movingPiece;
+                // Undo the move
+                board[srcRow][srcCol] = movingPiece;
                 board[move.destination.first][move.destination.second] = captured;
-                movingPiece->setRow(row);
-                movingPiece->setColumn(col);
+                movingPiece->setRow(srcRow);
+                movingPiece->setColumn(srcCol);
 
-                // Store move and score
-                move.score = score;
-                moves.push(move);
+                // Store the move with its score
+                move.score = eval;
+                recommendedMoves.push(move); // Prioritization is handled inside
             }
         }
     }
 
-    // get the 5 highest scored moves
+    // return only the 5 highest score
+    PriorityQueue<Move> highestFive;
     for (int i = 0; i < 5; i++) {
-        try {
-            recommendedMoves.push(moves.pull());
-        } catch (EmptyQueueException& e) {
-            cerr << e.what() << endl;
-        }
+        highestFive.push(recommendedMoves.pull());
     }
 
-    return recommendedMoves;
+    return highestFive;
 }

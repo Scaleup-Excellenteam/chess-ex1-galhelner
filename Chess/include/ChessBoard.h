@@ -27,6 +27,8 @@ private:
     int getPieceValue(ChessPiece* piece);
     int evaluateBoard();
     int minimax(int depth, bool isMaximizingPlayer);
+    int scoreMove(const Move& move, ChessPiece* movingPiece);
+    vector<pair<int, int>> getAllThreats(int targetRow, int targetCol, int attackerColor);
 
 public:
     ~ChessBoard();
@@ -48,11 +50,10 @@ public:
     /**
      * Calculate the best 5 moves the piece at current location can do.
      * @param playerColor(int) - color of the current player.
-     * @param currentRow(int) - row index to move from.
-     * @param currentCol(int) - column index to move from.
+     * @param depth(int) - amount of turns to simulate.
      * @return PriorityQueue<int> - the best 5 moves in a priority queue data structure.
      */
-    PriorityQueue<Move> getRecommendedMoves(int playerColor, int currentRow, int currentCol);
+    PriorityQueue<Move> getRecommendedMoves(int playerColor, int depth);
 };
 
 #endif //CHESS_CHESSBOARD_H
