@@ -397,6 +397,13 @@ int ChessBoard::minimax(int depth, bool isMaximizingPlayer) {
     return bestEval;
 }
 
+/**
+ * Find all the threats on some target location.
+ * @param targetRow(int) - index of the target location row.
+ * @param targetCol(int) - index of the target location column.
+ * @param attackerColor(int) - color of the opponent.
+ * @return vector<pair<int ,int>> - vector contains all the location pairs of the threat pieces.
+ */
 vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, int attackerColor) {
     vector<pair<int , int>> attackers;
     int rows = board.size();
@@ -415,6 +422,12 @@ vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, i
     return attackers;
 }
 
+/**
+ * Calculate the score of a tested move.
+ * @param move(Move&) - the tested move to evaluate its score.
+ * @param movingPiece(ChessPiece*) - the piece that moving.
+ * @return int - the evaluated score.
+ */
 int ChessBoard::scoreMove(const Move &move, ChessPiece *movingPiece) {
     int score = 0;
     ChessPiece* captured = board[move.destination.first][move.destination.second];
