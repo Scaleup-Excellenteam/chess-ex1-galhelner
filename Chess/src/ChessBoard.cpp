@@ -1,3 +1,4 @@
+#include <mutex>
 #include "ChessBoard.h"
 #include "Colors.h"
 #include "Rook.h"
@@ -7,6 +8,7 @@
 #include "Pawn.h"
 #include "Knight.h"
 #include "InvalidPieceException.h"
+#include "ThreadPool.h"
 
 const int EMPTY_SOURCE_CODE = 11;
 const int ENEMY_AT_SOURCE_CODE = 12;
@@ -535,6 +537,9 @@ ChessBoard *ChessBoard::clone() const {
 
 PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth) {
     PriorityQueue<Move> recommendedMoves;
+    std::mutex queueMutex;
+    ThreadPool threadPool(8);
+
     int rows = board.size();
     int columns = board[0].size();
 
@@ -543,32 +548,44 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth) 
             auto piece = board[srcRow][srcCol];
             if (piece == nullptr || piece->getColor() != playerColor) continue;
 
-            vector<Move> validMoves = getValidMoves(playerColor, srcRow, srcCol);
-            for (Move& move : validMoves) {
-                // Simulate the move
-                ChessPiece* captured = board[move.destination.first][move.destination.second];
-                ChessPiece* movingPiece = board[srcRow][srcCol];
+            // create one thread per piece
+            threadPool.enqueue([=, this, &queueMutex, &recommendedMoves]() {
+                ChessBoard* clonedInstance = this->clone();
+                auto& clonedBoard = clonedInstance->board;
 
-                board[move.destination.first][move.destination.second] = movingPiece;
-                board[srcRow][srcCol] = nullptr;
-                movingPiece->setRow(move.destination.first);
-                movingPiece->setColumn(move.destination.second);
+                vector<Move> validMoves = clonedInstance->getValidMoves(playerColor, srcRow, srcCol);
+                for (Move& move : validMoves) {
+                    // Simulate the move
+                    ChessPiece* captured = clonedBoard[move.destination.first][move.destination.second];
+                    ChessPiece* movingPiece = clonedBoard[srcRow][srcCol];
 
-                // Evaluate the board
-                int eval = minimax(depth, playerColor == Colors::White);
+                    clonedBoard[move.destination.first][move.destination.second] = movingPiece;
+                    clonedBoard[srcRow][srcCol] = nullptr;
+                    movingPiece->setRow(move.destination.first);
+                    movingPiece->setColumn(move.destination.second);
 
-                // Undo the move
-                board[srcRow][srcCol] = movingPiece;
-                board[move.destination.first][move.destination.second] = captured;
-                movingPiece->setRow(srcRow);
-                movingPiece->setColumn(srcCol);
+                    // Evaluate the board
+                    int eval = clonedInstance->minimax(depth, playerColor == Colors::White);
 
-                // Store the move with its score
-                move.score = eval;
-                recommendedMoves.push(move); // Prioritization is handled inside
-            }
+                    // Undo the move
+                    clonedBoard[srcRow][srcCol] = movingPiece;
+                    clonedBoard[move.destination.first][move.destination.second] = captured;
+                    movingPiece->setRow(srcRow);
+                    movingPiece->setColumn(srcCol);
+
+                    // Store the move with its score
+                    move.score = eval;
+
+                    // lock before access shared priority queue
+                    std::lock_guard<std::mutex> lock(queueMutex);
+                    recommendedMoves.push(move);
+                }
+            });
         }
     }
+
+    // wait for all the threads to finish
+    threadPool.wait_for_all();
 
     // return only the 5 highest score
     PriorityQueue<Move> highestFive;
