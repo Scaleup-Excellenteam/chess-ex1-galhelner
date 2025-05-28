@@ -550,7 +550,7 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth) 
 
             // create one thread per piece
             threadPool.enqueue([=, this, &queueMutex, &recommendedMoves]() {
-                ChessBoard* clonedInstance = this->clone();
+                std::unique_ptr<ChessBoard> clonedInstance(this->clone());
                 auto& clonedBoard = clonedInstance->board;
 
                 vector<Move> validMoves = clonedInstance->getValidMoves(playerColor, srcRow, srcCol);
