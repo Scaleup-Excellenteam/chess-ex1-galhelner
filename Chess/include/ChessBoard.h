@@ -29,6 +29,7 @@ private:
     int minimax(int depth, bool isMaximizingPlayer);
     int scoreMove(const Move& move, ChessPiece* movingPiece);
     vector<pair<int, int>> getAllThreats(int targetRow, int targetCol, int attackerColor);
+    ChessBoard* clone() const;
 
 public:
     ~ChessBoard();

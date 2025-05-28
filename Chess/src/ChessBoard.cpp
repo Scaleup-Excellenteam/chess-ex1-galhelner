@@ -513,6 +513,26 @@ int ChessBoard::getPieceValue(ChessPiece* piece) {
     if (king) return KING_SCORE;
 }
 
+/**
+ * Create a new clone of the ChessBoard instance.
+ * @return ChessBoard* - clone of 'this' instance.
+ */
+ChessBoard *ChessBoard::clone() const {
+    ChessBoard* newBoard = new ChessBoard();
+
+    // deep copy the board
+    newBoard->board.resize(this->board.size(), vector<ChessPiece*>(this->board[0].size(), nullptr));
+    for (int row = 0; row < board.size(); row++) {
+        for (int col = 0; col < board[row].size(); col++) {
+            if (board[row][col] != nullptr) {
+                newBoard->board[row][col] = board[row][col]->clone();
+            }
+        }
+    }
+
+    return newBoard;
+}
+
 PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth) {
     PriorityQueue<Move> recommendedMoves;
     int rows = board.size();
