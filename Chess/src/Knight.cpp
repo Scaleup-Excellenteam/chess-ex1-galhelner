@@ -16,3 +16,7 @@ bool Knight::isValidMove(int destinationCol, int destinationRow) {
 
     return false;
 }
+
+ChessPiece *Knight::clone() const {
+    return new Knight(*this);
+}

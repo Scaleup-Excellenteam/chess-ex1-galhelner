@@ -10,6 +10,7 @@ class Rook : public ChessPiece {
 public:
     Rook(int color, int column, int row): ChessPiece(color, column, row) {}
     bool isValidMove(int destinationCol, int destinationRow) override;
+    ChessPiece * clone() const override;
 };
 
 #endif //CHESS_ROOK_H

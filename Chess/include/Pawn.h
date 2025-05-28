@@ -14,5 +14,6 @@ private:
 public:
     Pawn(int color, int column, int row, vector<vector<ChessPiece*>>& board) : ChessPiece(color, column, row), board(board) {}
     bool isValidMove(int destinationCol, int destinationRow) override;
+    ChessPiece * clone() const override;
 };
 #endif //CHESS_PAWN_H

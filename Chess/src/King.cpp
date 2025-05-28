@@ -11,3 +11,7 @@ bool King::isValidMove(int destinationCol, int destinationRow) {
     int deltaRow = abs(this->row - destinationRow);
     return deltaColumn <= 1 && deltaRow <= 1;
 }
+
+ChessPiece *King::clone() const {
+    return new King(*this);
+}

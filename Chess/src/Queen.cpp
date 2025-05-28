@@ -15,3 +15,7 @@ bool Queen::isValidMove(int destinationCol, int destinationRow) {
     int deltaRow = abs(this->row - destinationRow);
     return deltaRow == deltaColumn;
 }
+
+ChessPiece *Queen::clone() const {
+    return new Queen(*this);
+}

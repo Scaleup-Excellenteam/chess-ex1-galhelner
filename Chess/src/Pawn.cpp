@@ -32,3 +32,7 @@ bool Pawn::isValidMove(int destinationCol, int destinationRow) {
 
     return false;
 }
+
+ChessPiece *Pawn::clone() const {
+    return new Pawn(*this);
+}

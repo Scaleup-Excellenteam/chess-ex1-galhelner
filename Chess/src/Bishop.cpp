@@ -11,3 +11,7 @@ bool Bishop::isValidMove(int destinationCol, int destinationRow) {
     int deltaRow = abs(this->row - destinationRow);
     return deltaRow == deltaColumn;
 }
+
+ChessPiece *Bishop::clone() const {
+    return new Bishop(*this);
+}

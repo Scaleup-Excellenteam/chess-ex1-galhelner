@@ -9,6 +9,7 @@ class ChessPiece {
 public:
     ChessPiece(int color, int column, int row);
     virtual bool isValidMove(int destinationCol, int destinationRow) = 0;
+    virtual ChessPiece* clone() const = 0;
     virtual ~ChessPiece() = default;
     virtual int getColor();
     void setColumn(int newColumn) { this->column = newColumn; }

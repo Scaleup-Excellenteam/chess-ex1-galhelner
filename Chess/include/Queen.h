@@ -10,6 +10,7 @@ class Queen : public ChessPiece {
 public:
     Queen(int color, int column, int row) : ChessPiece(color, column, row) {}
     bool isValidMove(int destinationCol, int destinationRow) override;
+    ChessPiece * clone() const override;
 };
 
 #endif //CHESS_QUEEN_H
