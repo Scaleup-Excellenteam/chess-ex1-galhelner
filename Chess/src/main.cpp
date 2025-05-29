@@ -5,7 +5,7 @@
 #include "InvalidPieceException.h"
 
 void showRecommendedMoves(ChessBoard& chessBoard, int playerColor, int depth) {
-    PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth);
+    PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth, 8);
     cout << recommendedMoves;
 }
 
