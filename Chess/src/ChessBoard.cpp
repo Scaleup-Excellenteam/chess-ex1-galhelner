@@ -535,10 +535,10 @@ ChessBoard *ChessBoard::clone() const {
     return newBoard;
 }
 
-PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth) {
+PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, int numOfThreads) {
     PriorityQueue<Move> recommendedMoves;
     std::mutex queueMutex;
-    ThreadPool threadPool(8);
+    ThreadPool threadPool(numOfThreads);
 
     int rows = board.size();
     int columns = board[0].size();

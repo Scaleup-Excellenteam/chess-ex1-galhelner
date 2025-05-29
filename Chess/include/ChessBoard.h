@@ -52,9 +52,10 @@ public:
      * Calculate the best 5 moves the piece at current location can do.
      * @param playerColor(int) - color of the current player.
      * @param depth(int) - amount of turns to simulate.
+     * @param numOfThreads(int) - amount of threads to run concurrently in the algorithm.
      * @return PriorityQueue<int> - the best 5 moves in a priority queue data structure.
      */
-    PriorityQueue<Move> getRecommendedMoves(int playerColor, int depth);
+    PriorityQueue<Move> getRecommendedMoves(int playerColor, int depth, int numOfThreads);
 };
 
 #endif //CHESS_CHESSBOARD_H
