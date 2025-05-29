@@ -9,11 +9,9 @@ using namespace std;
  */
 
 class Pawn : public ChessPiece {
-private:
-    vector<vector<ChessPiece*>>& board;
 public:
-    Pawn(int color, int column, int row, vector<vector<ChessPiece*>>& board) : ChessPiece(color, column, row), board(board) {}
-    bool isValidMove(int destinationCol, int destinationRow) override;
+    Pawn(int color, int column, int row) : ChessPiece(color, column, row) {}
+    bool isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) override;
     ChessPiece * clone() const override;
 };
 #endif //CHESS_PAWN_H

@@ -6,7 +6,7 @@
  * Pawn class implementation
  */
 
-bool Pawn::isValidMove(int destinationCol, int destinationRow) {
+bool Pawn::isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) {
     int startRow = (this->color == Colors::White) ? 6 : 1;
     int deltaColumn = abs(this->column - destinationCol);
     int deltaRow = abs(this->row - destinationRow);
@@ -34,5 +34,5 @@ bool Pawn::isValidMove(int destinationCol, int destinationRow) {
 }
 
 ChessPiece *Pawn::clone() const {
-    return new Pawn(*this);
+    return new Pawn(color, column, row);
 }

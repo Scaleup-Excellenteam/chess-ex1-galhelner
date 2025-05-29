@@ -5,7 +5,7 @@
  * King class implementation
  */
 
-bool King::isValidMove(int destinationCol, int destinationRow) {
+bool King::isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) {
     // King piece is able to move only single step sideways or diagonally
     int deltaColumn = abs(this->column - destinationCol);
     int deltaRow = abs(this->row - destinationRow);
@@ -13,5 +13,5 @@ bool King::isValidMove(int destinationCol, int destinationRow) {
 }
 
 ChessPiece *King::clone() const {
-    return new King(*this);
+    return new King(color, column, row);
 }
