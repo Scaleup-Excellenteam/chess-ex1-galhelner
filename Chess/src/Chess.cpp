@@ -1,6 +1,8 @@
 #include "Chess.h"
 #include <iostream>
 #include <string>
+#include <sstream>
+#include "Colors.h"
 
 using namespace std;
 
@@ -281,7 +283,7 @@ Chess::Chess(const string& start)
 }
 
 // get the source and destination 
-string Chess::getInput()
+string Chess::getInput(istream& in)
 {
 	static bool isFirst = true;
 
@@ -293,7 +295,7 @@ string Chess::getInput()
 	displayBoard();
 	showAskInput();
 
-	cin >> m_input;
+	in >> m_input;
 	if (isExit())
 		return "exit";
 	while (!isValid() || isSame())
@@ -304,7 +306,7 @@ string Chess::getInput()
 			m_errorMsg = "The source and the destination are the same !! \n";
 		displayBoard();
 		showAskInput();
-		cin >> m_input;
+		in >> m_input;
 		if (isExit())
 			return "exit";
 	}
@@ -327,3 +329,44 @@ void Chess::setCodeResponse(int codeResponse)
 		((41 == codeResponse) || (codeResponse == 42)))
 		m_codeResponse = codeResponse;
 }
+
+void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth) {
+    // play some white first move
+    string firstMove = "g1f1";
+    istringstream stream(firstMove);
+    getInput(stream);
+    setCodeResponse(42);
+
+    // true means Player1 is playing, false means Player2 is playing
+    bool currentPlayer = false;
+    for (int moveNum = 0; moveNum < 8; moveNum++) {
+        int playerColor = currentPlayer? Colors::White : Colors::Black;
+
+        // get recommended moves
+        PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth, 8);
+
+        // choose the first recommended move
+        Move move = recommendedMoves.pull();
+        int srcRow = move.source.first;
+        char srcRowChar = 'a' + move.source.first;
+        int srcCol = move.source.second;
+        string srcColStr = to_string(srcCol + 1);
+        int destRow = move.destination.first;
+        char destRowChar = 'a' + move.destination.first;
+        int destCol = move.destination.second;
+        string destColStr = to_string(destCol + 1);
+
+        string moveInput = srcRowChar + srcColStr + destRowChar + destColStr;
+        istringstream inStream(moveInput);
+        getInput(inStream);
+
+        // get the corresponding codeResponse created by ChessBoard object
+        int codeResponse = chessBoard.getMoveCodeResponse(playerColor, srcRow, srcCol, destRow, destCol, chessBoard.getBoard());
+        pair<const int, const int> validMoveCodes = {41, 42};
+        if (codeResponse == validMoveCodes.first || codeResponse == validMoveCodes.second) {
+            // flipping turns
+            currentPlayer = !currentPlayer;
+        }
+        setCodeResponse(codeResponse);
+    }
+ }

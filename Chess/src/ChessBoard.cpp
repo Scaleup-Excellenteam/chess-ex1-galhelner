@@ -56,6 +56,10 @@ ChessBoard::~ChessBoard() {
     board.clear();
 }
 
+vector<vector<ChessPiece *>> &ChessBoard::getBoard() {
+    return board;
+}
+
 /**
  * Adds a single chess piece at specific location to the board.
  * @param symbol(char) - symbol of the piece on GUI.
@@ -81,9 +85,9 @@ void ChessBoard::addPiece(char symbol, int column, int row) {
     }
 }
 
-int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
-    ChessPiece* sourcePiece = board[sourceRow][sourceCol];
-    ChessPiece* destinationPiece = board[destinationRow][destinationCol];
+int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
+    ChessPiece* sourcePiece = clonedBoard[sourceRow][sourceCol];
+    ChessPiece* destinationPiece = clonedBoard[destinationRow][destinationCol];
 
     int opponentColor = playerColor == 0 ? 1 : 0;
 
@@ -91,7 +95,7 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
         return EMPTY_SOURCE_CODE;
     }
 
-    if (sourcePiece->getColor()  != playerColor) {
+    if (sourcePiece->getColor() != playerColor) {
         return ENEMY_AT_SOURCE_CODE;
     }
 
@@ -99,26 +103,27 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
         return MATE_AT_DESTINATION_CODE;
     }
 
-    if (!sourcePiece->isValidMove(destinationCol, destinationRow, board) || isAnyPieceBlocking(sourceRow, sourceCol, destinationRow, destinationCol)) {
+    if (!sourcePiece->isValidMove(destinationCol, destinationRow, clonedBoard) ||
+    isAnyPieceBlocking(sourceRow, sourceCol, destinationRow, destinationCol, clonedBoard)) {
         return INVALID_MOVE_OR_BLOCKED_CODE;
     }
 
-    if (isCheck(playerColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
+    if (isCheck(playerColor, sourceRow, sourceCol, destinationRow, destinationCol, clonedBoard)) {
         return CHECK_MATE_CODE;
     }
 
-    if (isCheck(opponentColor, sourceRow, sourceCol, destinationRow, destinationCol)) {
+    if (isCheck(opponentColor, sourceRow, sourceCol, destinationRow, destinationCol, clonedBoard)) {
         sourcePiece->setRow(destinationRow);
         sourcePiece->setColumn(destinationCol);
-        board[sourceRow][sourceCol] = nullptr;
-        board[destinationRow][destinationCol] = sourcePiece;
+        clonedBoard[sourceRow][sourceCol] = nullptr;
+        clonedBoard[destinationRow][destinationCol] = sourcePiece;
         return CHECK_VALID_MOVE_CODE;
     }
 
     sourcePiece->setRow(destinationRow);
     sourcePiece->setColumn(destinationCol);
-    board[sourceRow][sourceCol] = nullptr;
-    board[destinationRow][destinationCol] = sourcePiece;
+    clonedBoard[sourceRow][sourceCol] = nullptr;
+    clonedBoard[destinationRow][destinationCol] = sourcePiece;
     return VALID_MOVE_CODE;
 }
 
@@ -130,8 +135,8 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
  * @param destinationCol(int) - column index to move to.
  * @return bool - true if any chess piece is blocking the path, otherwise false.
  */
-bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
-    auto pathPieces = getPathPieces(sourceRow, sourceCol, destinationRow, destinationCol);
+bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
+    auto pathPieces = getPathPieces(sourceRow, sourceCol, destinationRow, destinationCol, clonedBoard);
     // check if the movement path is clear or blocked by some piece
     for (auto piece : pathPieces) {
         if (piece != nullptr) {
@@ -149,28 +154,28 @@ bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinatio
  * @param destinationCol(int) - column index to move to.
  * @return vector<ChessPiece*> - a vector of all the chess pieces on the path.
  */
-vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
     vector<ChessPiece*> pathPieces;
     if (sourceRow == destinationRow) {
         // moving horizontally
         if (sourceCol < destinationCol) {
             // moving right
-            pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + sourceCol + 1, board[sourceRow].begin() + destinationCol);
+            pathPieces = vector<ChessPiece*>(clonedBoard[sourceRow].begin() + sourceCol + 1, clonedBoard[sourceRow].begin() + destinationCol);
         } else {
             // moving left
-            pathPieces = vector<ChessPiece*>(board[sourceRow].begin() + destinationCol + 1, board[sourceRow].begin() + sourceCol);
+            pathPieces = vector<ChessPiece*>(clonedBoard[sourceRow].begin() + destinationCol + 1, clonedBoard[sourceRow].begin() + sourceCol);
         }
     } else if (sourceCol == destinationCol){
         // moving vertically
         if (sourceRow < destinationRow) {
             // moving down
             for (int row = sourceRow + 1; row < destinationRow; row++) {
-                pathPieces.push_back(board[row][sourceCol]);
+                pathPieces.push_back(clonedBoard[row][sourceCol]);
             }
         } else {
             // moving up
             for (int row = destinationRow + 1; row < sourceRow; row++) {
-                pathPieces.push_back(board[row][sourceCol]);
+                pathPieces.push_back(clonedBoard[row][sourceCol]);
             }
         }
     } else {
@@ -181,13 +186,13 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
                 // moving diagonally down-right
                 int distance = destinationCol - sourceCol;
                 for (int i = 1; i < distance; i++) {
-                    pathPieces.push_back(board[sourceRow + i][sourceCol + i]);
+                    pathPieces.push_back(clonedBoard[sourceRow + i][sourceCol + i]);
                 }
             } else {
                 // moving diagonally down-left
                 int distance = sourceCol - destinationCol;
                 for (int i = 1; i < distance; i++) {
-                    pathPieces.push_back(board[sourceRow + i][sourceCol - i]);
+                    pathPieces.push_back(clonedBoard[sourceRow + i][sourceCol - i]);
                 }
             }
         } else {
@@ -196,13 +201,13 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
                 // moving diagonally up-right
                 int distance = destinationCol - sourceCol;
                 for (int i = 1; i < distance; i++) {
-                    pathPieces.push_back(board[sourceRow - i][sourceCol + i]);
+                    pathPieces.push_back(clonedBoard[sourceRow - i][sourceCol + i]);
                 }
             } else {
                 // moving diagonally up-left
                 int distance = sourceCol - destinationCol;
                 for (int i = 1; i < distance; i++) {
-                    pathPieces.push_back(board[sourceRow - i][sourceCol - i]);
+                    pathPieces.push_back(clonedBoard[sourceRow - i][sourceCol - i]);
                 }
             }
         }
@@ -216,14 +221,14 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
  * @param playerColor(int) - color of the king to find.
  * @return pair<int,int> - A pair of the king location where first=row and second=column
  */
-pair<int, int> ChessBoard::findKing(int playerColor) {
-    int rows = board.size();
-    int columns = board[0].size();
+pair<int, int> ChessBoard::findKing(int playerColor, vector<vector<ChessPiece*>>& clonedBoard) {
+    int rows = clonedBoard.size();
+    int columns = clonedBoard[0].size();
     pair<int,int> kingLocation = {-1, -1};
 
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-            auto king = dynamic_cast<King*>(board[row][col]);
+            auto king = dynamic_cast<King*>(clonedBoard[row][col]);
             if (king && king->getColor() == playerColor) {
                 kingLocation.first = row;
                 kingLocation.second = col;
@@ -240,17 +245,17 @@ pair<int, int> ChessBoard::findKing(int playerColor) {
  * @param testedCol(int) - column index of the tested location.
  * @return bool - true if the location is attackable by any opponent piece, otherwise false.
  */
-bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol) {
-    int rows = board.size();
-    int columns = board[0].size();
+bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol, vector<vector<ChessPiece*>>& clonedBoard) {
+    int rows = clonedBoard.size();
+    int columns = clonedBoard[0].size();
 
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-            ChessPiece* currentPiece = board[row][col];
+            ChessPiece* currentPiece = clonedBoard[row][col];
             if (currentPiece != nullptr && currentPiece->getColor() != playerColor) {
-                bool isValidMove = currentPiece->isValidMove(testedCol, testedRow, board);
+                bool isValidMove = currentPiece->isValidMove(testedCol, testedRow, clonedBoard);
                 if (isValidMove) {
-                    bool isPathClear = !isAnyPieceBlocking(row, col, testedRow, testedCol);
+                    bool isPathClear = !isAnyPieceBlocking(row, col, testedRow, testedCol, clonedBoard);
                     if (isPathClear) {
                         // an opponent piece is able to move on a clear path straight to the tested location
                         return true;
@@ -271,26 +276,36 @@ bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol) {
  * @param destinationCol(int) - column index to move to.
  * @return bool - true if the move caused a check, otherwise false.
  */
-bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol) {
+bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
     // store the board state before move simulation
-    ChessPiece* pieceToMove = board[sourceRow][sourceCol];
-    ChessPiece* pieceToOverride = board[destinationRow][destinationCol];
+    ChessPiece* pieceToMove = clonedBoard[sourceRow][sourceCol];
+    ChessPiece* pieceToOverride = clonedBoard[destinationRow][destinationCol];
 
     // simulating the move
-    board[sourceRow][sourceCol] = nullptr;
-    board[destinationRow][destinationCol] = pieceToMove;
+    clonedBoard[sourceRow][sourceCol] = nullptr;
+    clonedBoard[destinationRow][destinationCol] = pieceToMove;
+
+    if (pieceToMove == nullptr) {
+        return false;
+    }
+
     pieceToMove->setRow(destinationRow);
     pieceToMove->setColumn(destinationCol);
 
     // find the king location
-    pair<int,int> kingLocation = findKing(playerColor);
+    pair<int,int> kingLocation = findKing(playerColor, clonedBoard);
+
+    if (kingLocation.first == -1 || kingLocation.second == -1) {
+        return false;
+    }
 
     // check if after the move simulation the king is attackable
-    bool isKingAttackable = isAttackable(playerColor, kingLocation.first, kingLocation.second);
+    bool isKingAttackable = isAttackable(playerColor, kingLocation.first, kingLocation.second, clonedBoard);
 
     // restore the board state as it was before move simulation
-    board[sourceRow][sourceCol] = pieceToMove;
-    board[destinationRow][destinationCol] = pieceToOverride;
+    clonedBoard[sourceRow][sourceCol] = pieceToMove;
+    clonedBoard[destinationRow][destinationCol] = pieceToOverride;
+
     pieceToMove->setRow(sourceRow);
     pieceToMove->setColumn(sourceCol);
 
@@ -315,7 +330,8 @@ vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourc
         for (int col = 0; col < columns; col++) {
             ChessPiece* pieceToMove = clonedBoard[sourceRow][sourceCol];
             ChessPiece* pieceToOverride = clonedBoard[row][col];
-            int responseCode = clonedInstance->getMoveCodeResponse(playerColor, sourceRow, sourceCol, row, col);
+
+            int responseCode = clonedInstance->getMoveCodeResponse(playerColor, sourceRow, sourceCol, row, col, clonedBoard);
             if (responseCode == VALID_MOVE_CODE || responseCode == CHECK_VALID_MOVE_CODE) {
                 // undo move
                 clonedBoard[sourceRow][sourceCol] = pieceToMove;
@@ -406,7 +422,7 @@ vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, i
         for (int col = 0; col < columns; col++) {
             ChessPiece* piece = clonedBoard[row][col];
             if (piece && piece->getColor() == attackerColor) {
-                if (piece->isValidMove(targetCol, targetRow, clonedBoard) && !clonedInstance->isAnyPieceBlocking(row, col, targetRow, targetCol)) {
+                if (piece->isValidMove(targetCol, targetRow, clonedBoard) && !clonedInstance->isAnyPieceBlocking(row, col, targetRow, targetCol, clonedBoard)) {
                     attackers.push_back({row, col});
                 }
             }
@@ -446,7 +462,7 @@ int ChessBoard::scoreMove(const Move &move, ChessPiece *movingPiece, vector<vect
 
     auto attacks = clonedInstance->getValidMoves(movingPiece->getColor(), move.destination.first, move.destination.second, clonedBoard, clonedInstance);
     for (const auto& pos : attacks) {
-        ChessPiece* target = board[pos.destination.first][pos.destination.second];
+        ChessPiece* target = clonedBoard[pos.destination.first][pos.destination.second];
         if (target && clonedInstance->getPieceValue(target) > movedValue && target->getColor() == opponentColor) {
             score += (clonedInstance->getPieceValue(target) - movedValue) / 2;
         }
@@ -544,7 +560,7 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, 
 
     for (int srcRow = 0; srcRow < rows; srcRow++) {
         for (int srcCol = 0; srcCol < columns; srcCol++) {
-            auto piece = board[srcRow][srcCol];
+            auto piece = this->board[srcRow][srcCol];
             if (piece == nullptr || piece->getColor() != playerColor) continue;
 
             // create one thread per piece
@@ -554,6 +570,11 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, 
 
                 vector<Move> validMoves = clonedInstance->getValidMoves(playerColor, srcRow, srcCol, clonedBoard, clonedInstance);
                 for (Move& move : validMoves) {
+                    if (move.destination.first < 0 || move.destination.first >= clonedBoard.size() ||
+                        move.destination.second < 0 || move.destination.second >= clonedBoard[0].size()) {
+                        return; // skip invalid move
+                    }
+
                     // Simulate the move
                     ChessPiece* captured = clonedBoard[move.destination.first][move.destination.second];
                     ChessPiece* movingPiece = clonedBoard[srcRow][srcCol];
@@ -589,7 +610,11 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, 
     // return only the 5 highest score
     PriorityQueue<Move> highestFive;
     for (int i = 0; i < 5; i++) {
-        highestFive.push(recommendedMoves.pull());
+        try {
+            highestFive.push(recommendedMoves.pull());
+        } catch (EmptyQueueException& e) {
+            cerr << e.what() << endl;
+        }
     }
 
     return highestFive;
