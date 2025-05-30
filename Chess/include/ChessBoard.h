@@ -2,6 +2,7 @@
 #define CHESS_CHESSBOARD_H
 #include <string>
 #include <vector>
+#include <memory>
 #include "ChessPiece.h"
 #include "PriorityQueue.h"
 #include "Move.h"
@@ -14,8 +15,6 @@ using namespace std;
 
 class ChessBoard {
 private:
-    static ChessBoard* instance;
-    ChessBoard();
     vector<vector<ChessPiece*>> board;
     void addPiece(char symbol, int column, int row);
     bool isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol);
@@ -23,20 +22,18 @@ private:
     pair<int,int> findKing(int playerColor);
     bool isAttackable(int playerColor, int testedRow, int testedCol);
     bool isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol);
-    vector<Move> getValidMoves(int playerColor, int sourceRow, int sourceCol);
+    vector<Move> getValidMoves(int playerColor, int sourceRow, int sourceCol, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance);
     int getPieceValue(ChessPiece* piece);
-    int evaluateBoard();
-    int minimax(int depth, bool isMaximizingPlayer);
-    int scoreMove(const Move& move, ChessPiece* movingPiece);
-    vector<pair<int, int>> getAllThreats(int targetRow, int targetCol, int attackerColor);
-    ChessBoard* clone() const;
+    int evaluateBoard(vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance);
+    int minimax(int depth, bool isMaximizingPlayer, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance);
+    int scoreMove(const Move& move, ChessPiece* movingPiece, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance);
+    vector<pair<int, int>> getAllThreats(int targetRow, int targetCol, int attackerColor, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance);
+    ChessBoard* clone();
 
 public:
+    ChessBoard();
+    ChessBoard(const string& boardString);
     ~ChessBoard();
-    ChessBoard(const ChessBoard&) = delete;
-    ChessBoard& operator= (const ChessBoard&) = delete;
-    static ChessBoard* getInstance(const string& boardString);
-    static void destroyInstance();
     /**
      * Analyze the move and provide the corresponding codeResponse for the graphic machine.
      * @param playerColor(int) - color of the current player that is trying to move.

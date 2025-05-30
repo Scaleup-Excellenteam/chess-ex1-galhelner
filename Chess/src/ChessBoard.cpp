@@ -28,9 +28,23 @@ const int KING_SCORE = 20000;
 const int MIN_EVAL_VALUE = -1000000;
 const int MAX_EVAL_VALUE = 1000000;
 
-ChessBoard* ChessBoard::instance = nullptr;
-
 ChessBoard::ChessBoard(): board(vector<vector<ChessPiece*>>(8, vector<ChessPiece*>(8, nullptr))) {}
+
+ChessBoard::ChessBoard(const std::string &boardString) : board(vector<vector<ChessPiece*>>(8, vector<ChessPiece*>(8, nullptr))){
+    if (!boardString.empty() && boardString.length() == 64) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                int symbol_index = (row * 8) + col;
+                char symbol = boardString[symbol_index];
+                try {
+                    addPiece(symbol, col, row);
+                } catch (InvalidPieceException& e) {
+                    throw e;
+                }
+            }
+        }
+    }
+}
 
 ChessBoard::~ChessBoard() {
     for (auto& pieces : board) {
@@ -40,35 +54,6 @@ ChessBoard::~ChessBoard() {
         pieces.clear();
     }
     board.clear();
-}
-
-void ChessBoard::destroyInstance() {
-    if (instance != nullptr) {
-        // call the destructor to delete all the pieces in the board.
-        delete instance;
-        instance = nullptr;
-    }
-}
-
-ChessBoard *ChessBoard::getInstance(const string& boardString) {
-    // provides a singleton design pattern
-    if (instance == nullptr) {
-        instance = new ChessBoard();
-        if (!boardString.empty() && boardString.length() == 64) {
-            for (int row = 0; row < 8; row++) {
-                for (int col = 0; col < 8; col++) {
-                    int symbol_index = (row * 8) + col;
-                    char symbol = boardString[symbol_index];
-                    try {
-                        instance->addPiece(symbol, col, row);
-                    } catch (InvalidPieceException& e) {
-                        throw e;
-                    }
-                }
-            }
-        }
-    }
-    return instance;
 }
 
 /**
@@ -87,8 +72,8 @@ void ChessBoard::addPiece(char symbol, int column, int row) {
         case 'k': board[row][column] = new King(Colors::Black, column, row); break;
         case 'Q': board[row][column] = new Queen(Colors::White, column, row); break;
         case 'q': board[row][column] = new Queen(Colors::Black, column, row); break;
-        case 'P': board[row][column] = new Pawn(Colors::White, column, row, board); break;
-        case 'p': board[row][column] = new Pawn(Colors::Black, column, row, board); break;
+        case 'P': board[row][column] = new Pawn(Colors::White, column, row); break;
+        case 'p': board[row][column] = new Pawn(Colors::Black, column, row); break;
         case 'N': board[row][column] = new Knight(Colors::White, column, row); break;
         case 'n': board[row][column] = new Knight(Colors::Black, column, row); break;
         case '#': board[row][column] = nullptr; break;
@@ -114,7 +99,7 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
         return MATE_AT_DESTINATION_CODE;
     }
 
-    if (!sourcePiece->isValidMove(destinationCol, destinationRow) || isAnyPieceBlocking(sourceRow, sourceCol, destinationRow, destinationCol)) {
+    if (!sourcePiece->isValidMove(destinationCol, destinationRow, board) || isAnyPieceBlocking(sourceRow, sourceCol, destinationRow, destinationCol)) {
         return INVALID_MOVE_OR_BLOCKED_CODE;
     }
 
@@ -263,7 +248,7 @@ bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol) {
         for (int col = 0; col < columns; col++) {
             ChessPiece* currentPiece = board[row][col];
             if (currentPiece != nullptr && currentPiece->getColor() != playerColor) {
-                bool isValidMove = currentPiece->isValidMove(testedCol, testedRow);
+                bool isValidMove = currentPiece->isValidMove(testedCol, testedRow, board);
                 if (isValidMove) {
                     bool isPathClear = !isAnyPieceBlocking(row, col, testedRow, testedCol);
                     if (isPathClear) {
@@ -317,24 +302,26 @@ bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int dest
  * @param playerColor(int) - the color of the current player.
  * @param sourceRow(int) - row index of the source location.
  * @param sourceCol(int) - column index of the source location.
+ * @param clonedBoard(vector<vector<ChessPiece*>>&) - cloned structure of the game board.
+ * @param clonedInstance(shared_ptr<ChessBoard>&) - cloned instance of the board object.
  * @return vector<Move> - vector contains all the possible valid moves.
  */
-vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourceCol) {
-    int rows = board.size();
-    int columns = board[0].size();
+vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourceCol, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance) {
+    int rows = clonedBoard.size();
+    int columns = clonedBoard[0].size();
     vector<Move> validMoves;
 
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-            ChessPiece* pieceToMove = board[sourceRow][sourceCol];
-            ChessPiece* pieceToOverride = board[row][col];
-            int responseCode = getMoveCodeResponse(playerColor, sourceRow, sourceCol, row, col);
+            ChessPiece* pieceToMove = clonedBoard[sourceRow][sourceCol];
+            ChessPiece* pieceToOverride = clonedBoard[row][col];
+            int responseCode = clonedInstance->getMoveCodeResponse(playerColor, sourceRow, sourceCol, row, col);
             if (responseCode == VALID_MOVE_CODE || responseCode == CHECK_VALID_MOVE_CODE) {
                 // undo move
-                board[sourceRow][sourceCol] = pieceToMove;
+                clonedBoard[sourceRow][sourceCol] = pieceToMove;
                 pieceToMove->setRow(sourceRow);
                 pieceToMove->setColumn(sourceCol);
-                board[row][col] = pieceToOverride;
+                clonedBoard[row][col] = pieceToOverride;
                 if (pieceToOverride != nullptr) {
                     pieceToOverride->setRow(row);
                     pieceToOverride->setColumn(col);
@@ -352,11 +339,13 @@ vector<Move> ChessBoard::getValidMoves(int playerColor, int sourceRow, int sourc
  * Evaluate moves score
  * @param depth(int) - amount of turns to simulate.
  * @param isMaximizingPlayer(bool) - true if the current player is white, otherwise false (maximize for white).
+ * @param clonedBoard(shared_ptr<ChessBoard>&) - cloned structure of the game board.
+ * @param clonedInstance(shared_ptr<ChessBoard>&) - cloned instance of the board object.
  * @return int - evaluation score.
  */
-int ChessBoard::minimax(int depth, bool isMaximizingPlayer) {
+int ChessBoard::minimax(int depth, bool isMaximizingPlayer, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance) {
     if (depth == 0) {
-        return evaluateBoard();
+        return clonedInstance->evaluateBoard(clonedBoard, clonedInstance);
     }
 
     int bestEval = isMaximizingPlayer ? MIN_EVAL_VALUE : MAX_EVAL_VALUE;
@@ -364,28 +353,28 @@ int ChessBoard::minimax(int depth, bool isMaximizingPlayer) {
 
     for (int srcRow = 0; srcRow < 8; srcRow++) {
         for (int srcCol = 0; srcCol < 8; srcCol++) {
-            ChessPiece* piece = board[srcRow][srcCol];
+            ChessPiece* piece = clonedBoard[srcRow][srcCol];
             if (piece == nullptr || piece->getColor() != playerColor) continue;
 
-            vector<Move> validMoves = getValidMoves(playerColor, srcRow, srcCol);
+            vector<Move> validMoves = clonedInstance->getValidMoves(playerColor, srcRow, srcCol, clonedBoard, clonedInstance);
             for (Move& move : validMoves) {
-                ChessPiece* captured = board[move.destination.first][move.destination.second];
-                ChessPiece* movingPiece = board[srcRow][srcCol];
+                ChessPiece* captured = clonedBoard[move.destination.first][move.destination.second];
+                ChessPiece* movingPiece = clonedBoard[srcRow][srcCol];
 
                 // moving the piece
-                board[move.destination.first][move.destination.second] = movingPiece;
-                board[srcRow][srcCol] = nullptr;
+                clonedBoard[move.destination.first][move.destination.second] = movingPiece;
+                clonedBoard[srcRow][srcCol] = nullptr;
                 movingPiece->setRow(move.destination.first);
                 movingPiece->setColumn(move.destination.second);
 
                 // calculate scores
-                int baseScore = minimax(depth - 1, !isMaximizingPlayer);
-                int testedScore = scoreMove(move, movingPiece);
+                int baseScore = clonedInstance->minimax(depth - 1, !isMaximizingPlayer, clonedBoard, clonedInstance);
+                int testedScore = clonedInstance->scoreMove(move, movingPiece, clonedBoard, clonedInstance);
                 int totalScore = baseScore + testedScore;
 
                 // undo the move
-                board[srcRow][srcCol] = movingPiece;
-                board[move.destination.first][move.destination.second] = captured;
+                clonedBoard[srcRow][srcCol] = movingPiece;
+                clonedBoard[move.destination.first][move.destination.second] = captured;
                 movingPiece->setRow(srcRow);
                 movingPiece->setColumn(srcCol);
 
@@ -404,18 +393,20 @@ int ChessBoard::minimax(int depth, bool isMaximizingPlayer) {
  * @param targetRow(int) - index of the target location row.
  * @param targetCol(int) - index of the target location column.
  * @param attackerColor(int) - color of the opponent.
+ * @param clonedBoard(shared_ptr<ChessBoard>&) - cloned structure of the game board.
+ * @param clonedInstance(shared_ptr<ChessBoard>&) - cloned instance of the board object.
  * @return vector<pair<int ,int>> - vector contains all the location pairs of the threat pieces.
  */
-vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, int attackerColor) {
+vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, int attackerColor, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance) {
     vector<pair<int , int>> attackers;
-    int rows = board.size();
-    int columns = board[0].size();
+    int rows = clonedBoard.size();
+    int columns = clonedBoard[0].size();
 
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-            ChessPiece* piece = board[row][col];
+            ChessPiece* piece = clonedBoard[row][col];
             if (piece && piece->getColor() == attackerColor) {
-                if (piece->isValidMove(targetCol, targetRow) && !isAnyPieceBlocking(row, col, targetRow, targetCol)) {
+                if (piece->isValidMove(targetCol, targetRow, clonedBoard) && !clonedInstance->isAnyPieceBlocking(row, col, targetRow, targetCol)) {
                     attackers.push_back({row, col});
                 }
             }
@@ -428,44 +419,46 @@ vector<pair<int, int>> ChessBoard::getAllThreats(int targetRow, int targetCol, i
  * Calculate the score of a tested move.
  * @param move(Move&) - the tested move to evaluate its score.
  * @param movingPiece(ChessPiece*) - the piece that moving.
+ * @param clonedBoard(shared_ptr<ChessBoard>&) - cloned structure of the game board.
+ * @param clonedInstance(shared_ptr<ChessBoard>&) - cloned instance of the board object.
  * @return int - the evaluated score.
  */
-int ChessBoard::scoreMove(const Move &move, ChessPiece *movingPiece) {
+int ChessBoard::scoreMove(const Move &move, ChessPiece *movingPiece, vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance) {
     int score = 0;
-    ChessPiece* captured = board[move.destination.first][move.destination.second];
+    ChessPiece* captured = clonedBoard[move.destination.first][move.destination.second];
 
     // moving the piece
-    board[move.destination.first][move.destination.second] = movingPiece;
-    board[move.source.first][move.source.second] = nullptr;
+    clonedBoard[move.destination.first][move.destination.second] = movingPiece;
+    clonedBoard[move.source.first][move.source.second] = nullptr;
     movingPiece->setRow(move.destination.first);
     movingPiece->setColumn(move.destination.second);
 
     int opponentColor = (movingPiece->getColor() == Colors::White) ? Colors::Black : Colors::White;
-    int movedValue = getPieceValue(movingPiece);
+    int movedValue = clonedInstance->getPieceValue(movingPiece);
 
-    auto threats = getAllThreats(move.destination.first, move.destination.second, opponentColor);
+    auto threats = clonedInstance->getAllThreats(move.destination.first, move.destination.second, opponentColor, clonedBoard, clonedInstance);
     for (const auto& pos : threats) {
-        ChessPiece* attacker = board[pos.first][pos.second];
+        ChessPiece* attacker = clonedBoard[pos.first][pos.second];
         if (attacker && getPieceValue(attacker) < movedValue) {
             score -= (movedValue - getPieceValue(attacker)) / 2;
         }
     }
 
-    auto attacks = getValidMoves(movingPiece->getColor(), move.destination.first, move.destination.second);
+    auto attacks = clonedInstance->getValidMoves(movingPiece->getColor(), move.destination.first, move.destination.second, clonedBoard, clonedInstance);
     for (const auto& pos : attacks) {
         ChessPiece* target = board[pos.destination.first][pos.destination.second];
-        if (target && getPieceValue(target) > movedValue && target->getColor() == opponentColor) {
-            score += (getPieceValue(target) - movedValue) / 2;
+        if (target && clonedInstance->getPieceValue(target) > movedValue && target->getColor() == opponentColor) {
+            score += (clonedInstance->getPieceValue(target) - movedValue) / 2;
         }
     }
 
     if (captured && captured->getColor() == opponentColor) {
-        score += getPieceValue(captured);
+        score += clonedInstance->getPieceValue(captured);
     }
 
     // undo the move
-    board[move.destination.first][move.destination.second] = captured;
-    board[move.source.first][move.source.second] = movingPiece;
+    clonedBoard[move.destination.first][move.destination.second] = captured;
+    clonedBoard[move.source.first][move.source.second] = movingPiece;
     movingPiece->setRow(move.source.first);
     movingPiece->setColumn(move.source.second);
 
@@ -474,17 +467,19 @@ int ChessBoard::scoreMove(const Move &move, ChessPiece *movingPiece) {
 
 /**
  * Evaluate the whole board score.
+ * @param clonedBoard(shared_ptr<ChessBoard>&) - cloned structure of the game board.
+ * @param clonedInstance(shared_ptr<ChessBoard>&) - cloned instance of the board object.
  * @return int - evaluation score.
  */
-int ChessBoard::evaluateBoard() {
+int ChessBoard::evaluateBoard(vector<vector<ChessPiece*>>& clonedBoard, shared_ptr<ChessBoard>& clonedInstance) {
     int score = 0;
-    int rows = board.size();
-    int columns = board[0].size();
+    int rows = clonedBoard.size();
+    int columns = clonedBoard[0].size();
 
     for (int row = 0; row < rows; row++) {
         for (int col = 0; col < columns; col++) {
-            auto piece = board[row][col];
-            score += getPieceValue(piece);
+            auto piece = clonedBoard[row][col];
+            score += clonedInstance->getPieceValue(piece);
         }
     }
 
@@ -519,8 +514,12 @@ int ChessBoard::getPieceValue(ChessPiece* piece) {
  * Create a new clone of the ChessBoard instance.
  * @return ChessBoard* - clone of 'this' instance.
  */
-ChessBoard *ChessBoard::clone() const {
+ChessBoard *ChessBoard::clone() {
     ChessBoard* newBoard = new ChessBoard();
+
+    if (this->board.empty()) {
+        return newBoard;
+    }
 
     // deep copy the board
     newBoard->board.resize(this->board.size(), vector<ChessPiece*>(this->board[0].size(), nullptr));
@@ -550,10 +549,10 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, 
 
             // create one thread per piece
             threadPool.enqueue([=, this, &queueMutex, &recommendedMoves]() {
-                std::unique_ptr<ChessBoard> clonedInstance(this->clone());
+                std::shared_ptr<ChessBoard> clonedInstance(this->clone());
                 auto& clonedBoard = clonedInstance->board;
 
-                vector<Move> validMoves = clonedInstance->getValidMoves(playerColor, srcRow, srcCol);
+                vector<Move> validMoves = clonedInstance->getValidMoves(playerColor, srcRow, srcCol, clonedBoard, clonedInstance);
                 for (Move& move : validMoves) {
                     // Simulate the move
                     ChessPiece* captured = clonedBoard[move.destination.first][move.destination.second];
@@ -565,7 +564,7 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, 
                     movingPiece->setColumn(move.destination.second);
 
                     // Evaluate the board
-                    int eval = clonedInstance->minimax(depth, playerColor == Colors::White);
+                    int eval = clonedInstance->minimax(depth, playerColor == Colors::White, clonedBoard, clonedInstance);
 
                     // Undo the move
                     clonedBoard[srcRow][srcCol] = movingPiece;
