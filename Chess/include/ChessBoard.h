@@ -9,7 +9,7 @@
 using namespace std;
 
 /*
- * Singleton class represent a chess board object
+ * A class represent a chess board object
  * stores all the chess pieces on the board and provide a codeResponse for a given move.
  */
 
@@ -41,6 +41,7 @@ public:
      * @param sourceCol(int) - column index to move from.
      * @param destinationRow(int) - row index to move to.
      * @param destinationCol(int) - column index to move to.
+     * @param clonedBoard - cloned structure of the game board.
      * @return int - corresponding codeResponse for the graphic machine.
      */
     int getMoveCodeResponse(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard);

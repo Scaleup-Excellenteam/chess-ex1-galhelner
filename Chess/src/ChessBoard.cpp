@@ -133,6 +133,7 @@ int ChessBoard::getMoveCodeResponse(int playerColor, int sourceRow, int sourceCo
  * @param sourceCol(int) - column index to move from.
  * @param destinationRow(int) - row index to move to.
  * @param destinationCol(int) - column index to move to.
+ * @param clonedBoard - cloned structure of the game board.
  * @return bool - true if any chess piece is blocking the path, otherwise false.
  */
 bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
@@ -152,6 +153,7 @@ bool ChessBoard::isAnyPieceBlocking(int sourceRow, int sourceCol, int destinatio
  * @param sourceCol(int) - column index to move from.
  * @param destinationRow(int) - row index to move to.
  * @param destinationCol(int) - column index to move to.
+ * @param clonedBoard - cloned structure of the game board.
  * @return vector<ChessPiece*> - a vector of all the chess pieces on the path.
  */
 vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
@@ -219,6 +221,7 @@ vector<ChessPiece *> ChessBoard::getPathPieces(int sourceRow, int sourceCol, int
 /**
  * Find the location of the king chess piece by color.
  * @param playerColor(int) - color of the king to find.
+ * @param clonedBoard - cloned structure of the game board.
  * @return pair<int,int> - A pair of the king location where first=row and second=column
  */
 pair<int, int> ChessBoard::findKing(int playerColor, vector<vector<ChessPiece*>>& clonedBoard) {
@@ -243,6 +246,7 @@ pair<int, int> ChessBoard::findKing(int playerColor, vector<vector<ChessPiece*>>
  * @param playerColor(int) - color of the current player.
  * @param testedRow(int) - row index of the tested location.
  * @param testedCol(int) - column index of the tested location.
+ * @param clonedBoard - cloned structure of the game board.
  * @return bool - true if the location is attackable by any opponent piece, otherwise false.
  */
 bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol, vector<vector<ChessPiece*>>& clonedBoard) {
@@ -274,6 +278,7 @@ bool ChessBoard::isAttackable(int playerColor, int testedRow, int testedCol, vec
  * @param sourceCol(int) - column index to move from.
  * @param destinationRow(int) - row index to move to.
  * @param destinationCol(int) - column index to move to.
+ * @param clonedBoard - cloned structure of the game board.
  * @return bool - true if the move caused a check, otherwise false.
  */
 bool ChessBoard::isCheck(int playerColor, int sourceRow, int sourceCol, int destinationRow, int destinationCol, vector<vector<ChessPiece*>>& clonedBoard) {
