@@ -5,7 +5,8 @@
 #include "Colors.h"
 #include "InvalidPieceException.h"
 
-const string YES = "yes";
+const string AUTO = "auto";
+const string MEASURE = "measure";
 
 void showRecommendedMoves(ChessBoard& chessBoard, int playerColor, int depth) {
     PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth, 8);
@@ -29,12 +30,14 @@ int main()
     // ignore leftover break line character from last input
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     string choose;
-    cout << "Would you like to run automatic game? Enter yes or enter any other input for normal game: ";
+    cout << "Enter auto for automatic game, measure for time measurement or any other input for normal game: ";
     getline(cin, choose);
     shared_ptr<ChessBoard> chessBoard = make_shared<ChessBoard>(board);
-    if (choose == YES) {
+    if (choose == AUTO) {
         // running automatic game with 8 threads
         a.runAutomaticGame(*chessBoard, depth, 8);
+    } else if (choose == MEASURE) {
+        a.measureGameTimes(board, depth);
     } else {
         try {
             showRecommendedMoves(*chessBoard, Colors::White, depth);

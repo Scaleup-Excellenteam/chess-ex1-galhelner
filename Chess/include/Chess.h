@@ -34,7 +34,7 @@ class Chess {
 	bool isExit() const;
 	void excute();
 	void doTurn();
-    void measureGameTimeHelper(ChessBoard& chessBoard, int depth, int numOfThreads);
+    double measureGameTimeHelper(ChessBoard& chessBoard, int depth, int numOfThreads);
 
 public:
 	Chess(const string& start = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr");
@@ -53,8 +53,8 @@ public:
 
     /**
      * Measure the running time of automatic game with 2,4,8 threads.
-     * @param chessBoard - reference to the ChessBoard object.
+     * @param board - string representation of the board layout.
      * @param depth - depth value for the recommended moves algorithm.
      */
-    void measureGameTimes(ChessBoard& chessBoard, int depth);
+    void measureGameTimes(const string board, int depth);
 };

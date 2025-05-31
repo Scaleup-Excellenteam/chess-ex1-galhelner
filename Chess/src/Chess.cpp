@@ -377,22 +377,32 @@ void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth, int numOfThreads
   * @param chessBoard - reference to the ChessBoard object.
   * @param depth - depth value for the recommended moves algorithm.
   * @param numOfThreads - amount of threads to run concurrently in the algorithm.
+  * @return double - the measured time.
   */
-void Chess::measureGameTimeHelper(ChessBoard &chessBoard, int depth, int numOfThreads) {
+double Chess::measureGameTimeHelper(ChessBoard &chessBoard, int depth, int numOfThreads) {
     auto startTime = chrono::high_resolution_clock::now();
     runAutomaticGame(chessBoard, depth, numOfThreads);
     auto endTime = chrono::high_resolution_clock::now();
     chrono::duration<double, milli> duration = endTime - startTime;
-    cout << "Running time with " << numOfThreads << "threads: " << duration.count() << endl;
+    return duration.count();
 }
 
-void Chess::measureGameTimes(ChessBoard &chessBoard, int depth) {
+void Chess::measureGameTimes(const string board, int depth) {
     // measurement for 2 threads
-    measureGameTimeHelper(chessBoard, depth, 2);
+    shared_ptr<ChessBoard> chessBoard = make_shared<ChessBoard>(board);
+    double timeFor2 = measureGameTimeHelper(*chessBoard, depth, 2);
 
     // measurement for 4 threads
-    measureGameTimeHelper(chessBoard, depth, 4);
+    chessBoard = make_shared<ChessBoard>(board);
+    double timeFor4 = measureGameTimeHelper(*chessBoard, depth, 4);
 
     // measurement for 8 threads
-    measureGameTimeHelper(chessBoard, depth, 8);
+    chessBoard = make_shared<ChessBoard>(board);
+    double timeFor8 = measureGameTimeHelper(*chessBoard, depth, 8);
+
+    // print the results
+    cout << "Measurement Results:" <<endl;
+    cout << "Running time for 2 threads: " << timeFor2 << endl;
+    cout << "Running time for 4 threads: " << timeFor4 << endl;
+    cout << "Running time for 8 threads: " << timeFor8 << endl;
 }

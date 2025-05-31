@@ -613,7 +613,7 @@ PriorityQueue<Move> ChessBoard::getRecommendedMoves(int playerColor, int depth, 
         try {
             highestFive.push(recommendedMoves.pull());
         } catch (EmptyQueueException& e) {
-            cerr << e.what() << endl;
+
         }
     }
 
