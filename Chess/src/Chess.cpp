@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <chrono>
 #include "Colors.h"
 
 using namespace std;
@@ -330,7 +331,7 @@ void Chess::setCodeResponse(int codeResponse)
 		m_codeResponse = codeResponse;
 }
 
-void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth) {
+void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth, int numOfThreads) {
     // play some white first move
     string firstMove = "g1f1";
     istringstream stream(firstMove);
@@ -343,7 +344,7 @@ void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth) {
         int playerColor = currentPlayer? Colors::White : Colors::Black;
 
         // get recommended moves
-        PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth, 8);
+        PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth, numOfThreads);
 
         // choose the first recommended move
         Move move = recommendedMoves.pull();
@@ -370,3 +371,28 @@ void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth) {
         setCodeResponse(codeResponse);
     }
  }
+
+ /**
+  * Helper function for measureGameTimes that measure time for specific number of threads.
+  * @param chessBoard - reference to the ChessBoard object.
+  * @param depth - depth value for the recommended moves algorithm.
+  * @param numOfThreads - amount of threads to run concurrently in the algorithm.
+  */
+void Chess::measureGameTimeHelper(ChessBoard &chessBoard, int depth, int numOfThreads) {
+    auto startTime = chrono::high_resolution_clock::now();
+    runAutomaticGame(chessBoard, depth, numOfThreads);
+    auto endTime = chrono::high_resolution_clock::now();
+    chrono::duration<double, milli> duration = endTime - startTime;
+    cout << "Running time with " << numOfThreads << "threads: " << duration.count() << endl;
+}
+
+void Chess::measureGameTimes(ChessBoard &chessBoard, int depth) {
+    // measurement for 2 threads
+    measureGameTimeHelper(chessBoard, depth, 2);
+
+    // measurement for 4 threads
+    measureGameTimeHelper(chessBoard, depth, 4);
+
+    // measurement for 8 threads
+    measureGameTimeHelper(chessBoard, depth, 8);
+}

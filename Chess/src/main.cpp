@@ -33,7 +33,8 @@ int main()
     getline(cin, choose);
     shared_ptr<ChessBoard> chessBoard = make_shared<ChessBoard>(board);
     if (choose == YES) {
-        a.runAutomaticGame(*chessBoard, depth);
+        // running automatic game with 8 threads
+        a.runAutomaticGame(*chessBoard, depth, 8);
     } else {
         try {
             showRecommendedMoves(*chessBoard, Colors::White, depth);
