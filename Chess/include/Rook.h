@@ -9,7 +9,8 @@
 class Rook : public ChessPiece {
 public:
     Rook(int color, int column, int row): ChessPiece(color, column, row) {}
-    bool isValidMove(int destinationCol, int destinationRow) override;
+    bool isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) override;
+    ChessPiece * clone() const override;
 };
 
 #endif //CHESS_ROOK_H

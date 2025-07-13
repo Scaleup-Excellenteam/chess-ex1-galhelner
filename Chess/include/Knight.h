@@ -10,7 +10,8 @@ using namespace std;
 class Knight : public ChessPiece {
 public:
     Knight(int color, int column, int row) : ChessPiece(color, column, row) {}
-    bool isValidMove(int destinationCol, int destinationRow) override;
+    bool isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) override;
+    ChessPiece * clone() const override;
 };
 
 #endif //CHESS_KNIGHT_H

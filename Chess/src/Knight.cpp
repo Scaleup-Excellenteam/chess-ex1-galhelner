@@ -5,7 +5,7 @@
  * Knight class implementation
  */
 
-bool Knight::isValidMove(int destinationCol, int destinationRow) {
+bool Knight::isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) {
     int deltaColumn = abs(this->column - destinationCol);
     int deltaRow = abs(this->row - destinationRow);
 
@@ -15,4 +15,8 @@ bool Knight::isValidMove(int destinationCol, int destinationRow) {
     }
 
     return false;
+}
+
+ChessPiece *Knight::clone() const {
+    return new Knight(color, column, row);
 }

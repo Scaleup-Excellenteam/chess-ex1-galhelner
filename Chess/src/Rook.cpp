@@ -4,7 +4,11 @@
  * Rook class implementation
  */
 
-bool Rook::isValidMove(int destinationCol, int destinationRow) {
+bool Rook::isValidMove(int destinationCol, int destinationRow, const vector<vector<ChessPiece*>>& board) {
     // Rook piece is able to move only in straight lines
     return this->column == destinationCol || this->row == destinationRow;
+}
+
+ChessPiece *Rook::clone() const {
+    return new Rook(*this);
 }

@@ -1,6 +1,9 @@
 #include "Chess.h"
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <chrono>
+#include "Colors.h"
 
 using namespace std;
 
@@ -281,7 +284,7 @@ Chess::Chess(const string& start)
 }
 
 // get the source and destination 
-string Chess::getInput()
+string Chess::getInput(istream& in)
 {
 	static bool isFirst = true;
 
@@ -293,7 +296,7 @@ string Chess::getInput()
 	displayBoard();
 	showAskInput();
 
-	cin >> m_input;
+	in >> m_input;
 	if (isExit())
 		return "exit";
 	while (!isValid() || isSame())
@@ -304,7 +307,7 @@ string Chess::getInput()
 			m_errorMsg = "The source and the destination are the same !! \n";
 		displayBoard();
 		showAskInput();
-		cin >> m_input;
+		in >> m_input;
 		if (isExit())
 			return "exit";
 	}
@@ -326,4 +329,80 @@ void Chess::setCodeResponse(int codeResponse)
 		((21 == codeResponse) || (codeResponse == 31)) ||
 		((41 == codeResponse) || (codeResponse == 42)))
 		m_codeResponse = codeResponse;
+}
+
+void Chess::runAutomaticGame(ChessBoard &chessBoard, int depth, int numOfThreads) {
+    // play some white first move
+    string firstMove = "g1f1";
+    istringstream stream(firstMove);
+    getInput(stream);
+    setCodeResponse(42);
+
+    // true means Player1 is playing, false means Player2 is playing
+    bool currentPlayer = false;
+    for (int moveNum = 0; moveNum < 8; moveNum++) {
+        int playerColor = currentPlayer? Colors::White : Colors::Black;
+
+        // get recommended moves
+        PriorityQueue<Move> recommendedMoves = chessBoard.getRecommendedMoves(playerColor, depth, numOfThreads);
+
+        // choose the first recommended move
+        Move move = recommendedMoves.pull();
+        int srcRow = move.source.first;
+        char srcRowChar = 'a' + move.source.first;
+        int srcCol = move.source.second;
+        string srcColStr = to_string(srcCol + 1);
+        int destRow = move.destination.first;
+        char destRowChar = 'a' + move.destination.first;
+        int destCol = move.destination.second;
+        string destColStr = to_string(destCol + 1);
+
+        string moveInput = srcRowChar + srcColStr + destRowChar + destColStr;
+        istringstream inStream(moveInput);
+        getInput(inStream);
+
+        // get the corresponding codeResponse created by ChessBoard object
+        int codeResponse = chessBoard.getMoveCodeResponse(playerColor, srcRow, srcCol, destRow, destCol, chessBoard.getBoard());
+        pair<const int, const int> validMoveCodes = {41, 42};
+        if (codeResponse == validMoveCodes.first || codeResponse == validMoveCodes.second) {
+            // flipping turns
+            currentPlayer = !currentPlayer;
+        }
+        setCodeResponse(codeResponse);
+    }
+ }
+
+ /**
+  * Helper function for measureGameTimes that measure time for specific number of threads.
+  * @param chessBoard - reference to the ChessBoard object.
+  * @param depth - depth value for the recommended moves algorithm.
+  * @param numOfThreads - amount of threads to run concurrently in the algorithm.
+  * @return double - the measured time.
+  */
+double Chess::measureGameTimeHelper(ChessBoard &chessBoard, int depth, int numOfThreads) {
+    auto startTime = chrono::high_resolution_clock::now();
+    runAutomaticGame(chessBoard, depth, numOfThreads);
+    auto endTime = chrono::high_resolution_clock::now();
+    chrono::duration<double, milli> duration = endTime - startTime;
+    return duration.count();
+}
+
+void Chess::measureGameTimes(const string board, int depth) {
+    // measurement for 2 threads
+    shared_ptr<ChessBoard> chessBoard = make_shared<ChessBoard>(board);
+    double timeFor2 = measureGameTimeHelper(*chessBoard, depth, 2);
+
+    // measurement for 4 threads
+    chessBoard = make_shared<ChessBoard>(board);
+    double timeFor4 = measureGameTimeHelper(*chessBoard, depth, 4);
+
+    // measurement for 8 threads
+    chessBoard = make_shared<ChessBoard>(board);
+    double timeFor8 = measureGameTimeHelper(*chessBoard, depth, 8);
+
+    // print the results
+    cout << "Measurement Results:" <<endl;
+    cout << "Running time for 2 threads: " << timeFor2 << endl;
+    cout << "Running time for 4 threads: " << timeFor4 << endl;
+    cout << "Running time for 8 threads: " << timeFor8 << endl;
 }

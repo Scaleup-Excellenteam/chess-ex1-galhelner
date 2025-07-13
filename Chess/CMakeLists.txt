@@ -39,6 +39,8 @@ add_executable (Chess ""
         include/EmptyQueueException.h
         include/Move.h
         include/InvalidPieceException.h
+        include/ThreadPool.h
+        src/ThreadPool.cpp
 )
 
 
